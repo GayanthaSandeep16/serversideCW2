@@ -1,0 +1,20 @@
+const { getCountryInfo } = require('../services/countryService');
+const { HTTP_STATUS } = require('../utils/constants');
+
+
+async function getCountry(req, res, next) {
+  try {
+    const country = req.params.country || req.query.country || req.body.country;
+    if (!country) {
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'Country parameter is required' });
+    }
+    const countryInfo = await getCountryInfo(country);
+    res.status(HTTP_STATUS.OK).json(countryInfo);
+  } catch (error) {
+    next(error);
+  }
+}
+
+module.exports = {
+  getCountry,
+};
