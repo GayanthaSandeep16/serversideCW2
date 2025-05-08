@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { register, login, follow, unfollow } = require('../controllers/userController');
+const { register, login, follow, unfollow,getProfile,updateProfile,getFollowers,getFollowing } = require('../controllers/userController');
 const { authenticateToken } = require('../middleware/authMiddleware');
 
 router.post('/register', register);
