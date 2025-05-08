@@ -1,5 +1,5 @@
 const { getCountryInfo } = require('../services/countryService');
-const { HTTP_STATUS } = require('../utils/constants');
+const { HTTP_STATUS } = require('../utils/constants.js');
 
 
 async function getCountry(req, res, next) {

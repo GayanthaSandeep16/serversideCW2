@@ -1,4 +1,4 @@
-const { HTTP_STATUS } = require('../utils/constants');
+const { HTTP_STATUS } = require('../utils/constants.js');
 
 function errorHandler(err, req, res, next) {
   logger.error(`Error: ${err.message}, Stack: ${err.stack}`);
