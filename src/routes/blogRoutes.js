@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { createPost, editPost, deletePost, searchPosts, like, comment, getPostComments } = require('../controllers/blogController');
+const { createPost, editPost, deletePost, searchPosts, like, comment, getPostComments,removeLike,getFeed,deleteComment,getLikes } = require('../controllers/blogController');
 const { authenticateToken } = require('../middleware/authMiddleware');
 
 router.post('/', authenticateToken, createPost);
