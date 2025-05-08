@@ -31,7 +31,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchUser = async () => {
     try {
-      const response = await api.get('/users/me');
+      const response = await api.get('/users/profile');
       setUser(response.data);
       setIsAuthenticated(true);
     } catch (error) {
@@ -42,7 +42,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await api.post('/users/login', {
+      const response = await api.post('/Users/login', {
         email,
         password,
       });
@@ -81,6 +81,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null);
     setIsAuthenticated(false);
   };
+
+  // Check authentication status on mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      const storedToken = localStorage.getItem('token');
+      if (storedToken) {
+        setToken(storedToken);
+        await fetchUser();
+      }
+    };
+    checkAuth();
+  }, []);
 
   return (
     <AuthContext.Provider value={{ user, token, login, register, logout, isAuthenticated }}>
