@@ -64,10 +64,16 @@ async function deleteBlogPost(postId, userId) {
   });
 }
 
-async function getBlogPosts({ country, username, page = 1, limit = 10 }) {
+async function getBlogPosts({ country, username, page = 1, limit = 10, sortBy = 'newest' }) {
   const offset = (page - 1) * limit;
   let query = 'SELECT p.*, u.username FROM posts p JOIN users u ON p.user_id = u.id';
   const params = [];
+  
+  if (sortBy === 'mostLiked') {
+    query = 'SELECT p.*, u.username, SUM(l.is_like) as like_count FROM posts p JOIN users u ON p.user_id = u.id LEFT JOIN likes l ON p.id = l.post_id';
+  } else if (sortBy === 'mostCommented') {
+    query = 'SELECT p.*, u.username, COUNT(c.id) as comment_count FROM posts p JOIN users u ON p.user_id = u.id LEFT JOIN comments c ON p.id = c.post_id';
+  }
   
   if (country) {
     query += ' WHERE p.country = ?';
@@ -77,7 +83,19 @@ async function getBlogPosts({ country, username, page = 1, limit = 10 }) {
     params.push(username);
   }
   
-  query += ' ORDER BY p.created_at DESC LIMIT ? OFFSET ?';
+  if (sortBy === 'mostLiked' || sortBy === 'mostCommented') {
+    query += ' GROUP BY p.id, p.user_id, p.title, p.content, p.country, p.created_at, u.username';
+  }
+  
+  if (sortBy === 'newest') {
+    query += ' ORDER BY p.created_at DESC';
+  } else if (sortBy === 'mostLiked') {
+    query += ' ORDER BY like_count DESC';
+  } else if (sortBy === 'mostCommented') {
+    query += ' ORDER BY comment_count DESC';
+  }
+  
+  query += ' LIMIT ? OFFSET ?';
   params.push(limit, offset);
   
   return new Promise((resolve, reject) => {
@@ -140,7 +158,7 @@ async function getComments(postId, page = 1, limit = 10) {
   });
 }
 
-async function removeLike(userId, postId) {
+async function removeLikeInPost(userId, postId) {
   return new Promise((resolve, reject) => {
     db.run('DELETE FROM likes WHERE user_id = ? AND post_id = ?', [userId, postId], function(err) {
       if (err) reject(err);
@@ -169,7 +187,7 @@ async function getFollowedPosts(userId, page = 1, limit = 10) {
   });
 }
 
-async function deleteComment(commentId, userId) {
+async function deleteCommentInPost(commentId, userId) {
   return new Promise((resolve, reject) => {
     db.run('DELETE FROM comments WHERE id = ? AND user_id = ?', [commentId, userId], function(err) {
       if (err) reject(err);
@@ -188,36 +206,4 @@ async function getPostLikes(postId) {
   });
 }
 
-async function getBlogPosts({ country, username, page = 1, limit = 10, sortBy = 'newest' }) {
-  const offset = (page - 1) * limit;
-  let query = 'SELECT p.*, u.username FROM posts p JOIN users u ON p.user_id = u.id';
-  const params = [];
-  
-  if (country) {
-    query += ' WHERE p.country = ?';
-    params.push(country);
-  } else if (username) {
-    query += ' WHERE u.username = ?';
-    params.push(username);
-  }
-  
-  if (sortBy === 'newest') {
-    query += ' ORDER BY p.created_at DESC';
-  } else if (sortBy === 'mostLiked') {
-    query += ' LEFT JOIN likes l ON p.id = l.post_id GROUP BY p.id, p.user_id, p.title, p.content, p.country, p.created_at, u.username ORDER BY SUM(l.is_like) DESC';
-  } else if (sortBy === 'mostCommented') {
-    query += ' LEFT JOIN comments c ON p.id = c.post_id GROUP BY p.id, p.user_id, p.title, p.content, p.country, p.created_at, u.username ORDER BY COUNT(c.id) DESC';
-  }
-  
-  query += ' LIMIT ? OFFSET ?';
-  params.push(limit, offset);
-  
-  return new Promise((resolve, reject) => {
-    db.all(query, params, (err, rows) => {
-      if (err) reject(err);
-      resolve(rows);
-    });
-  });
-}
-
-module.exports = { createBlogPost, editBlogPost, deleteBlogPost, getBlogPosts, likePost, createComment, getComments, removeLike, getFollowedPosts, deleteComment, getPostLikes };
+module.exports = { createBlogPost, editBlogPost, deleteBlogPost, getBlogPosts, likePost, createComment, getComments, removeLikeInPost, getFollowedPosts, deleteCommentInPost, getPostLikes };

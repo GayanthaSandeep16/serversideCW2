@@ -1,4 +1,4 @@
-const { createBlogPost, editBlogPost, deleteBlogPost, getBlogPosts, likePost, createComment, getComments } = require('../services/blogService');
+const { createBlogPost, editBlogPost, deleteBlogPost, getBlogPosts, likePost, createComment, getComments, removeLikeInPost, getFollowedPosts, deleteCommentInPost, getPostLikes } = require('../services/blogService');
 const { HTTP_STATUS } = require('../utils/constants');
 
 
@@ -80,7 +80,7 @@ async function getPostComments(req, res, next) {
 async function removeLike(req, res) {
   const { postId } = req.body;
   const userId = req.user.id;
-  const result = await removeLike(userId, postId);
+  const result = await removeLikeInPost(userId, postId);
   res.status(200).json(result);
 }
 
@@ -93,7 +93,7 @@ async function getFeed(req, res) {
 async function deleteComment(req, res) {
   const { commentId } = req.body;
   const userId = req.user.id;
-  const result = await deleteComment(commentId, userId);
+  const result = await deleteCommentInPost(commentId, userId);
   res.status(200).json(result);
 }
 
