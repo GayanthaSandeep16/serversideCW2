@@ -101,7 +101,7 @@ async function isTokenBlacklisted(token) {
   });
 }
 
-async function getFollowers(userId) {
+async function getFollowersbyId(userId) {
   return new Promise((resolve, reject) => {
     db.all('SELECT u.id, u.username FROM users u JOIN followers f ON u.id = f.follower_id WHERE f.followee_id = ?', [userId], (err, rows) => {
       if (err) reject(err);
@@ -110,7 +110,7 @@ async function getFollowers(userId) {
   });
 }
 
-async function getFollowing(userId) {
+async function getFollowingByUserId(userId) {
   return new Promise((resolve, reject) => {
     db.all('SELECT u.id, u.username FROM users u JOIN followers f ON u.id = f.followee_id WHERE f.follower_id = ?', [userId], (err, rows) => {
       if (err) reject(err);
@@ -119,4 +119,4 @@ async function getFollowing(userId) {
   });
 }
 
-module.exports = { registerUser, loginUser, followUser, unfollowUser, getUserProfile, updateUserProfile, isTokenBlacklisted, getFollowers, getFollowing };
+module.exports = { registerUser, loginUser, followUser, unfollowUser, getUserProfile, updateUserProfile, isTokenBlacklisted, getFollowersbyId, getFollowingByUserId };

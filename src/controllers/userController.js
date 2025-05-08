@@ -1,4 +1,4 @@
-const { registerUser, loginUser, followUser, unfollowUser } = require('../services/userService.js');
+const { registerUser, loginUser, followUser, unfollowUser,getUserProfile,getFollowersbyId,getFollowingByUserId,updateUserProfile } = require('../services/userService.js');
 const { HTTP_STATUS } = require('../utils/constants.js');
 
 async function register(req, res, next) {
@@ -56,13 +56,13 @@ async function updateProfile(req, res) {
 
 async function getFollowers(req, res) {
   const { userId } = req.params;
-  const followers = await getFollowers(userId);
+  const followers = await getFollowersbyId(userId);
   res.status(200).json(followers);
 }
 
 async function getFollowing(req, res) {
   const { userId } = req.params;
-  const following = await getFollowing(userId);
+  const following = await getFollowingByUserId(userId);
   res.status(200).json(following);
 }
 
