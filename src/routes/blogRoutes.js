@@ -10,5 +10,10 @@ router.get('/search', searchPosts);
 router.post('/like', authenticateToken, like);
 router.post('/comment', authenticateToken, comment);
 router.get('/:postId/comments', getPostComments);
+router.delete('/like', authenticateToken, removeLike);
+router.get('/feed', authenticateToken, getFeed);
+router.delete('/comment', authenticateToken, deleteComment);
+router.get('/:postId/likes', getLikes);
+router.get('/search', searchPosts);
 
 module.exports = router;
