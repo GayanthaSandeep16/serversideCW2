@@ -2,11 +2,11 @@ const fs = require('fs');
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 
-// Configuration - UPDATED PATHS
+// Configuration
 const config = {
   dbDirectory: path.join(__dirname, '..', 'data'),
   dbFilename: 'traveltales.db',
-  sqlScript: path.join(__dirname, '..', 'sql', 'init-db.sql') // Updated to point to a 'sql' directory
+  sqlScript: path.join(__dirname, '..', 'sql', 'init-db.sql')
 };
 
 // Validate and create directory structure
@@ -30,7 +30,7 @@ const initializeDatabase = async () => {
   }
 
   const dbPath = path.join(config.dbDirectory, config.dbFilename);
-  let db; // Declare db here so it's accessible in finally
+  let db;
 
   try {
     // Check if SQL file exists
@@ -100,4 +100,4 @@ const initializeDatabase = async () => {
 (async () => {
   const success = await initializeDatabase();
   process.exit(success ? 0 : 1);
-})();
+})(); 
