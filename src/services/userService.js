@@ -74,4 +74,49 @@ async function unfollowUser(followerId, followeeId) {
   });
 }
 
-module.exports = { registerUser, loginUser, followUser, unfollowUser };
+async function getUserProfile(userId) {
+  return new Promise((resolve, reject) => {
+    db.get('SELECT id, email, username FROM users WHERE id = ?', [userId], (err, row) => {
+      if (err) reject(err);
+      resolve(row);
+    });
+  });
+}
+
+async function updateUserProfile(userId, { email, username }) {
+  return new Promise((resolve, reject) => {
+    db.run('UPDATE users SET email = ?, username = ? WHERE id = ?', [email, username, userId], function(err) {
+      if (err) reject(err);
+      resolve({ id: userId, email, username });
+    });
+  });
+}
+
+async function isTokenBlacklisted(token) {
+  return new Promise((resolve, reject) => {
+    db.get('SELECT token FROM blacklisted_tokens WHERE token = ?', [token], (err, row) => {
+      if (err) reject(err);
+      resolve(!!row);
+    });
+  });
+}
+
+async function getFollowers(userId) {
+  return new Promise((resolve, reject) => {
+    db.all('SELECT u.id, u.username FROM users u JOIN followers f ON u.id = f.follower_id WHERE f.followee_id = ?', [userId], (err, rows) => {
+      if (err) reject(err);
+      resolve(rows);
+    });
+  });
+}
+
+async function getFollowing(userId) {
+  return new Promise((resolve, reject) => {
+    db.all('SELECT u.id, u.username FROM users u JOIN followers f ON u.id = f.followee_id WHERE f.follower_id = ?', [userId], (err, rows) => {
+      if (err) reject(err);
+      resolve(rows);
+    });
+  });
+}
+
+module.exports = { registerUser, loginUser, followUser, unfollowUser, getUserProfile, updateUserProfile, isTokenBlacklisted, getFollowers, getFollowing };

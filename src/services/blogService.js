@@ -140,4 +140,84 @@ async function getComments(postId, page = 1, limit = 10) {
   });
 }
 
-module.exports = { createBlogPost, editBlogPost, deleteBlogPost, getBlogPosts, likePost, createComment, getComments };
+async function removeLike(userId, postId) {
+  return new Promise((resolve, reject) => {
+    db.run('DELETE FROM likes WHERE user_id = ? AND post_id = ?', [userId, postId], function(err) {
+      if (err) reject(err);
+      resolve({ userId, postId });
+    });
+  });
+}
+
+async function getFollowedPosts(userId, page = 1, limit = 10) {
+  const offset = (page - 1) * limit;
+  return new Promise((resolve, reject) => {
+    db.all(
+      `SELECT p.*, u.username 
+       FROM posts p 
+       JOIN users u ON p.user_id = u.id 
+       JOIN followers f ON p.user_id = f.followee_id 
+       WHERE f.follower_id = ? 
+       ORDER BY p.created_at DESC 
+       LIMIT ? OFFSET ?`,
+      [userId, limit, offset],
+      (err, rows) => {
+        if (err) reject(err);
+        resolve(rows);
+      }
+    );
+  });
+}
+
+async function deleteComment(commentId, userId) {
+  return new Promise((resolve, reject) => {
+    db.run('DELETE FROM comments WHERE id = ? AND user_id = ?', [commentId, userId], function(err) {
+      if (err) reject(err);
+      if (this.changes === 0) reject(new Error('Comment not found or unauthorized'));
+      resolve({ commentId });
+    });
+  });
+}
+
+async function getPostLikes(postId) {
+  return new Promise((resolve, reject) => {
+    db.all('SELECT user_id, is_like FROM likes WHERE post_id = ?', [postId], (err, rows) => {
+      if (err) reject(err);
+      resolve(rows);
+    });
+  });
+}
+
+async function getBlogPosts({ country, username, page = 1, limit = 10, sortBy = 'newest' }) {
+  const offset = (page - 1) * limit;
+  let query = 'SELECT p.*, u.username FROM posts p JOIN users u ON p.user_id = u.id';
+  const params = [];
+  
+  if (country) {
+    query += ' WHERE p.country = ?';
+    params.push(country);
+  } else if (username) {
+    query += ' WHERE u.username = ?';
+    params.push(username);
+  }
+  
+  if (sortBy === 'newest') {
+    query += ' ORDER BY p.created_at DESC';
+  } else if (sortBy === 'mostLiked') {
+    query += ' LEFT JOIN likes l ON p.id = l.post_id GROUP BY p.id, p.user_id, p.title, p.content, p.country, p.created_at, u.username ORDER BY SUM(l.is_like) DESC';
+  } else if (sortBy === 'mostCommented') {
+    query += ' LEFT JOIN comments c ON p.id = c.post_id GROUP BY p.id, p.user_id, p.title, p.content, p.country, p.created_at, u.username ORDER BY COUNT(c.id) DESC';
+  }
+  
+  query += ' LIMIT ? OFFSET ?';
+  params.push(limit, offset);
+  
+  return new Promise((resolve, reject) => {
+    db.all(query, params, (err, rows) => {
+      if (err) reject(err);
+      resolve(rows);
+    });
+  });
+}
+
+module.exports = { createBlogPost, editBlogPost, deleteBlogPost, getBlogPosts, likePost, createComment, getComments, removeLike, getFollowedPosts, deleteComment, getPostLikes };
