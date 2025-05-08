@@ -1,7 +1,7 @@
 const { HTTP_STATUS } = require('../utils/constants.js');
 
 function errorHandler(err, req, res, next) {
-  logger.error(`Error: ${err.message}, Stack: ${err.stack}`);
+  console.log(`Error: ${err.message}, Stack: ${err.stack}`);
   
   const statusCode = err.statusCode || HTTP_STATUS.SERVER_ERROR;
   const message = err.message || 'Internal Server Error';

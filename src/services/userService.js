@@ -4,7 +4,7 @@ const sqlite3 = require('sqlite3').verbose();
 const { HTTP_STATUS, ERROR_MESSAGES } = require('../utils/constants.js');
 
 
-const db = new sqlite3.Database('./traveltales.db');
+const db = new sqlite3.Database('./data/traveltales.db');
 
 async function registerUser(email, password, username) {
   const hashedPassword = await bcrypt.hash(password, 10);

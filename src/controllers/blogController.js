@@ -1,6 +1,6 @@
 const { createBlogPost, editBlogPost, deleteBlogPost, getBlogPosts, likePost, createComment, getComments } = require('../services/blogService');
 const { HTTP_STATUS } = require('../utils/constants');
-const logger = require('../utils/logger');
+
 
 async function createPost(req, res, next) {
   try {

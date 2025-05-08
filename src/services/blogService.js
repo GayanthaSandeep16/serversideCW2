@@ -1,9 +1,9 @@
 const sqlite3 = require('sqlite3').verbose();
 const { fetchCountryData } = require('../utils/apiUtils');
 const { HTTP_STATUS, ERROR_MESSAGES } = require('../utils/constants');
-const logger = require('../utils/logger');
 
-const db = new sqlite3.Database('./traveltales.db');
+
+const db = new sqlite3.Database('./data/traveltales.db');
 
 async function createBlogPost(userId, title, content, country, dateOfVisit) {
   const countryData = await fetchCountryData(country);
@@ -13,7 +13,7 @@ async function createBlogPost(userId, title, content, country, dateOfVisit) {
       [userId, title, content, country, dateOfVisit, countryData.flag, countryData.currency, countryData.capital],
       function(err) {
         if (err) {
-          logger.error(`Error creating blog post: ${err.message}`);
+          console.log(`Error creating blog post: ${err.message}`);
           return reject(new Error('Failed to create blog post'));
         }
         resolve({ id: this.lastID, userId, title, content, country, dateOfVisit, ...countryData });
@@ -30,11 +30,11 @@ async function editBlogPost(postId, userId, title, content, country, dateOfVisit
       [title, content, country, dateOfVisit, countryData.flag, countryData.currency, countryData.capital, postId, userId],
       function(err) {
         if (err) {
-          logger.error(`Error updating blog post: ${err.message}`);
+          console.log(`Error updating blog post: ${err.message}`);
           return reject(new Error('Failed to update blog post'));
         }
         if (this.changes === 0) {
-          logger.warn(`Unauthorized edit attempt or post not found: postId=${postId}, userId=${userId}`);
+          console.log(`Unauthorized edit attempt or post not found: postId=${postId}, userId=${userId}`);
           return reject(new Error(ERROR_MESSAGES.UNAUTHORIZED));
         }
         resolve({ id: postId, userId, title, content, country, dateOfVisit, ...countryData });
@@ -50,11 +50,11 @@ async function deleteBlogPost(postId, userId) {
       [postId, userId],
       function(err) {
         if (err) {
-          logger.error(`Error deleting blog post: ${err.message}`);
+          console.log(`Error deleting blog post: ${err.message}`);
           return reject(new Error('Failed to delete blog post'));
         }
         if (this.changes === 0) {
-          logger.warn(`Unauthorized delete attempt or post not found: postId=${postId}, userId=${userId}`);
+          console.log(`Unauthorized delete attempt or post not found: postId=${postId}, userId=${userId}`);
           return reject(new Error(ERROR_MESSAGES.UNAUTHORIZED));
         }
         resolve({ id: postId });
@@ -82,7 +82,7 @@ async function getBlogPosts({ country, username, page = 1, limit = 10 }) {
   return new Promise((resolve, reject) => {
     db.all(query, params, (err, rows) => {
       if (err) {
-        logger.error(`Error fetching blog posts: ${err.message}`);
+        console.log(`Error fetching blog posts: ${err.message}`);
         return reject(new Error('Failed to fetch blog posts'));
       }
       resolve(rows);
@@ -97,7 +97,7 @@ async function likePost(userId, postId, isLike) {
       [userId, postId, isLike],
       function(err) {
         if (err) {
-          logger.error(`Error liking post: ${err.message}`);
+          console.log(`Error liking post: ${err.message}`);
           return reject(new Error('Failed to like post'));
         }
         resolve({ userId, postId, isLike });
@@ -113,7 +113,7 @@ async function createComment(userId, postId, content) {
       [userId, postId, content],
       function(err) {
         if (err) {
-          logger.error(`Error creating comment: ${err.message}`);
+          console.log(`Error creating comment: ${err.message}`);
           return reject(new Error('Failed to create comment'));
         }
         resolve({ id: this.lastID, userId, postId, content });
@@ -130,7 +130,7 @@ async function getComments(postId, page = 1, limit = 10) {
       [postId, limit, offset],
       (err, rows) => {
         if (err) {
-          logger.error(`Error fetching comments: ${err.message}`);
+          console.log(`Error fetching comments: ${err.message}`);
           return reject(new Error('Failed to fetch comments'));
         }
         resolve(rows);
