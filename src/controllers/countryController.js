@@ -1,4 +1,4 @@
-const { getCountryInfo , getallCountriesName} = require('../services/countryService');
+const { getCountryInfo, getAllCountriesNames } = require('../services/countryService');
 const { HTTP_STATUS } = require('../utils/constants.js');
 
 
@@ -15,9 +15,9 @@ async function getCountry(req, res, next) {
   }
 }
 
-async function getallCountriesNames(req, res, next) {
+async function getAllCountries(req, res, next) {
   try {
-    const countries = await getallCountriesName();
+    const countries = await getAllCountriesNames();
     res.status(HTTP_STATUS.OK).json(countries);
   } catch (error) {
     next(error);
@@ -26,5 +26,5 @@ async function getallCountriesNames(req, res, next) {
 
 module.exports = {
   getCountry,
-  getallCountriesNames,
+  getAllCountries,
 };

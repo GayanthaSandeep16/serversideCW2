@@ -1,23 +1,22 @@
-const { fetchCountryData ,fetchAllCountriesNames } = require('../utils/apiUtils.js');
+const { fetchCountryData, fetchAllCountriesNames } = require('../utils/apiUtils.js');
 
-async function getCountrtInfo(countyName) {
+async function getCountryInfo(countryName) {
     try {
-        const countryData = await fetchCountryData(countyName);
+        const countryData = await fetchCountryData(countryName);
         return countryData;
     } catch (error) {
         throw error;
     }
 }
 
-async function getallCountriesName() {
+async function getAllCountriesNames() {
     try {
-        const response = await fetchAllCountriesNames();
-        return response.data.map(country => country.name.common);
-
-    }
-    catch (error) {
+        const countries = await fetchAllCountriesNames();
+        return countries;
+    } catch (error) {
         console.error('Error fetching all country names:', error.message);
         throw new Error('Failed to fetch all country names');
     }
 }
-module.exports = { getCountrtInfo, getallCountriesName };
+
+module.exports = { getCountryInfo, getAllCountriesNames };
