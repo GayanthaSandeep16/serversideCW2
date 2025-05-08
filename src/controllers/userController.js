@@ -43,4 +43,28 @@ async function unfollow(req, res, next) {
   }
 }
 
-module.exports = { register, login, follow, unfollow };
+async function getProfile(req, res) {
+  const user = await getUserProfile(req.user.id);
+  res.status(200).json(user);
+}
+
+async function updateProfile(req, res) {
+  const { email, username } = req.body;
+  const user = await updateUserProfile(req.user.id, { email, username });
+  res.status(200).json(user);
+}
+
+async function getFollowers(req, res) {
+  const { userId } = req.params;
+  const followers = await getFollowers(userId);
+  res.status(200).json(followers);
+}
+
+async function getFollowing(req, res) {
+  const { userId } = req.params;
+  const following = await getFollowing(userId);
+  res.status(200).json(following);
+}
+
+
+module.exports = { register, login, follow, unfollow, getProfile, updateProfile, getFollowers, getFollowing };

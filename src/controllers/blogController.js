@@ -77,5 +77,36 @@ async function getPostComments(req, res, next) {
     next(error);
   }
 }
+async function removeLike(req, res) {
+  const { postId } = req.body;
+  const userId = req.user.id;
+  const result = await removeLike(userId, postId);
+  res.status(200).json(result);
+}
 
-module.exports = { createPost, editPost, deletePost, searchPosts, like, comment, getPostComments };
+async function getFeed(req, res) {
+  const { page, limit } = req.query;
+  const posts = await getFollowedPosts(req.user.id, parseInt(page), parseInt(limit));
+  res.status(200).json(posts);
+}
+
+async function deleteComment(req, res) {
+  const { commentId } = req.body;
+  const userId = req.user.id;
+  const result = await deleteComment(commentId, userId);
+  res.status(200).json(result);
+}
+
+async function getLikes(req, res) {
+  const { postId } = req.params;
+  const likes = await getPostLikes(postId);
+  res.status(200).json(likes);
+}
+
+async function searchPosts(req, res) {
+  const { country, username, page, limit, sortBy } = req.query;
+  const posts = await getBlogPosts({ country, username, page: parseInt(page), limit: parseInt(limit), sortBy });
+  res.status(200).json(posts);
+}
+
+module.exports = { createPost, editPost, deletePost, searchPosts, like, comment, getPostComments, removeLike, getFeed, deleteComment, getLikes };
