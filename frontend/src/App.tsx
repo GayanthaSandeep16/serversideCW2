@@ -6,6 +6,7 @@ import Home from './pages/Home';
 import Profile from './pages/Profile';
 import CreatePost from './pages/CreatePost';
 import CountrySearch from './pages/CountrySearch';
+import Feed from './pages/Feed';
 import { AuthProvider } from './context/AuthContext';
 
 function App() {
@@ -17,9 +18,10 @@ function App() {
           <div className="container mt-4">
             <Routes>
               <Route path="/" element={<Home />} />
+              <Route path="/search" element={<CountrySearch />} />
+              <Route path="/create" element={<CreatePost />} />
               <Route path="/profile/:username" element={<Profile />} />
-              <Route path="/create-post" element={<CreatePost />} />
-              <Route path="/country-search" element={<CountrySearch />} />
+              <Route path="/feed" element={<Feed />} />
             </Routes>
           </div>
         </div>
