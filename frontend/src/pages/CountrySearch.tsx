@@ -18,8 +18,11 @@ interface CountryDetails {
   name: string;
   capital: string;
   flag: string;
-  currency: string;
-  // Add more fields as needed when backend is implemented
+  currency: {
+    symbol: string;
+    name: string;
+  };
+  languages: string[];
 }
 
 const CountrySearch: React.FC = () => {
@@ -40,6 +43,9 @@ const CountrySearch: React.FC = () => {
   const [selectedCountry, setSelectedCountry] = useState('');
   const [countryDetails, setCountryDetails] = useState<CountryDetails | null>(null);
   const [loadingCountry, setLoadingCountry] = useState(false);
+  const [countrySearchInput, setCountrySearchInput] = useState('');
+  const [showCountryDetailsSuggestions, setShowCountryDetailsSuggestions] = useState(false);
+  const [filteredCountryDetails, setFilteredCountryDetails] = useState<string[]>([]);
 
   // Fetch all country names on mount
   useEffect(() => {
@@ -69,6 +75,18 @@ const CountrySearch: React.FC = () => {
       setFilteredCountries([]);
     }
   }, [countryFilter, countries]);
+
+  // Filter countries for details search
+  useEffect(() => {
+    if (countrySearchInput.trim()) {
+      const filtered = countries.filter(country =>
+        country.toLowerCase().includes(countrySearchInput.toLowerCase())
+      );
+      setFilteredCountryDetails(filtered);
+    } else {
+      setFilteredCountryDetails([]);
+    }
+  }, [countrySearchInput, countries]);
 
   // Fetch posts when filters or page changes
   useEffect(() => {
@@ -114,15 +132,21 @@ const CountrySearch: React.FC = () => {
     setSelectedCountry(country);
     setLoadingCountry(true);
     try {
-      // This will be implemented when backend is ready
-      // const response = await api.get(`/countries/${country}`);
-      // setCountryDetails(response.data);
-      setCountryDetails(null); // Remove this when backend is implemented
+      const response = await api.post('/countries/', { country });
+      setCountryDetails(response.data);
+      console.log(response.data);
     } catch (error) {
       console.error('Error fetching country details:', error);
+      setCountryDetails(null);
     } finally {
       setLoadingCountry(false);
     }
+  };
+
+  const handleCountryDetailsSelect = (country: string) => {
+    setCountrySearchInput(country);
+    setShowCountryDetailsSuggestions(false);
+    handleCountrySelectDetails(country);
   };
 
   const PostCard: React.FC<{ post: Post }> = ({ post }) => (
@@ -161,13 +185,14 @@ const CountrySearch: React.FC = () => {
         ) : countryDetails ? (
           <>
             <Card.Text>Capital: {countryDetails.capital}</Card.Text>
-            <Card.Text>Currency: {countryDetails.currency}</Card.Text>
+            <Card.Text>Currency: {countryDetails.currency.name} ({countryDetails.currency.symbol})</Card.Text>
+            <Card.Text>Languages: {countryDetails.languages.join(', ')}</Card.Text>
             {countryDetails.flag && (
               <img src={countryDetails.flag} alt={`${selectedCountry} flag`} style={{ maxWidth: '200px' }} />
             )}
           </>
         ) : (
-          <Card.Text>Country details will be available when backend is implemented</Card.Text>
+          <Card.Text>No country details found</Card.Text>
         )}
       </Card.Body>
     </Card>
@@ -281,17 +306,37 @@ const CountrySearch: React.FC = () => {
         <Tab eventKey="countryDetails" title="Country Details">
           <Form className="mb-4">
             <Form.Group>
-              <Form.Select
-                value={selectedCountry}
-                onChange={(e) => handleCountrySelectDetails(e.target.value)}
-              >
-                <option value="">Select a country...</option>
-                {countries.map((country) => (
-                  <option key={country} value={country}>
-                    {country}
-                  </option>
-                ))}
-              </Form.Select>
+              <Form.Label>Search Country</Form.Label>
+              <div className="position-relative">
+                <Form.Control
+                  type="text"
+                  placeholder="Type country name..."
+                  value={countrySearchInput}
+                  onChange={(e) => {
+                    setCountrySearchInput(e.target.value);
+                    setShowCountryDetailsSuggestions(true);
+                  }}
+                  onFocus={() => setShowCountryDetailsSuggestions(true)}
+                />
+                {showCountryDetailsSuggestions && filteredCountryDetails.length > 0 && (
+                  <div 
+                    className="position-absolute w-100 bg-white border rounded-bottom shadow-sm"
+                    style={{ zIndex: 1000, maxHeight: '200px', overflowY: 'auto' }}
+                  >
+                    {filteredCountryDetails.map((country) => (
+                      <div
+                        key={country}
+                        className="p-2 hover-bg-light cursor-pointer"
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => handleCountryDetailsSelect(country)}
+                        onMouseDown={(e) => e.preventDefault()}
+                      >
+                        {country}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </Form.Group>
           </Form>
 
