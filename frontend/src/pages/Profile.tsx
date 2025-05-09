@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Card, Row, Col, Button, Spinner } from 'react-bootstrap';
+import { Card, Row, Col, Button, Spinner, ListGroup } from 'react-bootstrap';
 import api from '../utils/axios';
 import { useAuth } from '../context/AuthContext';
 
@@ -21,10 +21,17 @@ interface Post {
   createdAt: string;
 }
 
+interface FollowUser {
+  id: string;
+  username: string;
+}
+
 const Profile: React.FC = () => {
   const { user: currentUser } = useAuth();
   const [user, setUser] = useState<User | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
+  const [followers, setFollowers] = useState<FollowUser[]>([]);
+  const [following, setFollowing] = useState<FollowUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [isFollowing, setIsFollowing] = useState(false);
 
@@ -33,7 +40,8 @@ const Profile: React.FC = () => {
       try {
         // Fetch user profile using JWT token
         const userResponse = await api.get('/users/profile');
-        setUser(userResponse.data);
+        const userData = userResponse.data;
+        setUser(userData);
 
         // Fetch user's posts
         const postsResponse = await api.get('/blogs/search', {
@@ -41,10 +49,18 @@ const Profile: React.FC = () => {
             sortBy: 'mostLiked',
             page: 1,
             limit: 10,
-            username: userResponse.data.username
+            username: userData.username
           }
         });
         setPosts(postsResponse.data);
+
+        // Fetch followers
+        const followersResponse = await api.get(`/users/${userData.id}/followers`);
+        setFollowers(followersResponse.data);
+
+        // Fetch following
+        const followingResponse = await api.get(`/users/${userData.id}/following`);
+        setFollowing(followingResponse.data);
       } catch (error) {
         console.error('Error fetching user data:', error);
       } finally {
@@ -59,8 +75,12 @@ const Profile: React.FC = () => {
     try {
       if (isFollowing) {
         await api.delete(`/users/${user?.username}/follow`);
+        setFollowers(prev => prev.filter(f => f.id !== currentUser?.id));
       } else {
         await api.post(`/users/${user?.username}/follow`);
+        if (currentUser) {
+          setFollowers(prev => [...prev, { id: currentUser.id, username: currentUser.username }]);
+        }
       }
       setIsFollowing(!isFollowing);
       if (user) {
@@ -117,6 +137,37 @@ const Profile: React.FC = () => {
         </Card.Body>
       </Card>
 
+      <Row className="mb-4">
+        <Col md={6}>
+          <h4>Followers</h4>
+          {followers.length === 0 ? (
+            <p>No followers yet.</p>
+          ) : (
+            <ListGroup>
+              {followers.map((follower) => (
+                <ListGroup.Item key={follower.id}>
+                  <Link to={`/profile/${follower.username}`}>{follower.username}</Link>
+                </ListGroup.Item>
+              ))}
+            </ListGroup>
+          )}
+        </Col>
+        <Col md={6}>
+          <h4>Following</h4>
+          {following.length === 0 ? (
+            <p>Not following anyone.</p>
+          ) : (
+            <ListGroup>
+              {following.map((followed) => (
+                <ListGroup.Item key={followed.id}>
+                  <Link to={`/profile/${followed.username}`}>{followed.username}</Link>
+                </ListGroup.Item>
+              ))}
+            </ListGroup>
+          )}
+        </Col>
+      </Row>
+
       <h3 className="mb-4">Posts</h3>
       <Row>
         {posts.map((post) => (
@@ -145,4 +196,4 @@ const Profile: React.FC = () => {
   );
 };
 
-export default Profile; 
+export default Profile;
