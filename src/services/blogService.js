@@ -66,14 +66,15 @@ async function deleteBlogPost(postId, userId) {
 
 async function getBlogPosts({ country, username, page = 1, limit = 10, sortBy = 'newest' }) {
   const offset = (page - 1) * limit;
-  let query = 'SELECT p.*, u.username FROM posts p JOIN users u ON p.user_id = u.id';
+  let query = `
+    SELECT p.*, u.username,
+    SUM(CASE WHEN l.is_like = 1 THEN 1 ELSE 0 END) as like_count,
+    SUM(CASE WHEN l.is_like = 0 THEN 1 ELSE 0 END) as dislike_count
+    FROM posts p 
+    JOIN users u ON p.user_id = u.id 
+    LEFT JOIN likes l ON p.id = l.post_id
+  `;
   const params = [];
-  
-  if (sortBy === 'mostLiked') {
-    query = 'SELECT p.*, u.username, SUM(l.is_like) as like_count FROM posts p JOIN users u ON p.user_id = u.id LEFT JOIN likes l ON p.id = l.post_id';
-  } else if (sortBy === 'mostCommented') {
-    query = 'SELECT p.*, u.username, COUNT(c.id) as comment_count FROM posts p JOIN users u ON p.user_id = u.id LEFT JOIN comments c ON p.id = c.post_id';
-  }
   
   if (country) {
     query += ' WHERE p.country = ?';
@@ -83,9 +84,7 @@ async function getBlogPosts({ country, username, page = 1, limit = 10, sortBy = 
     params.push(username);
   }
   
-  if (sortBy === 'mostLiked' || sortBy === 'mostCommented') {
-    query += ' GROUP BY p.id, p.user_id, p.title, p.content, p.country, p.created_at, u.username';
-  }
+  query += ' GROUP BY p.id, p.user_id, p.title, p.content, p.country, p.created_at, u.username';
   
   if (sortBy === 'newest') {
     query += ' ORDER BY p.created_at DESC';
