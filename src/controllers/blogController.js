@@ -1,4 +1,4 @@
-const { createBlogPost, editBlogPost, deleteBlogPost, getBlogPosts, likePost, createComment, getComments, removeLikeInPost, getFollowedPosts, deleteCommentInPost, getPostLikes } = require('../services/blogService');
+const { createBlogPost, editBlogPost, deleteBlogPost, getBlogPosts, likePost, createComment, getComments, removeLikeInPost, getFollowedPosts, deleteCommentInPost, getPostLikes,getBlogPostById } = require('../services/blogService');
 const { HTTP_STATUS } = require('../utils/constants');
 
 async function createPost(req, res, next) {
@@ -19,7 +19,8 @@ async function editPost(req, res, next) {
     const post = await editBlogPost(postId, userId, title, content, country, dateOfVisit);
     res.status(HTTP_STATUS.OK).json(post);
   } catch (error) {
-    next(error);
+    console.error('Error in editPost:', error);
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ error: error.message });
   }
 }
 
@@ -113,4 +114,16 @@ async function searchPosts(req, res) {
   res.status(200).json(posts);
 }
 
-module.exports = { createPost, editPost, deletePost, searchPosts, like, comment, getPostComments, removeLike, getFeed, deleteComment, getLikes };
+async function getPostById(req, res) {
+  const postId = parseInt(req.params.postId);
+  if (isNaN(postId)) {
+    return res.status(400).json({ error: 'Invalid postId' });
+  }
+  const post = await getBlogPostById(postId);
+  if (!post) {
+    return res.status(404).json({ error: 'Post not found' });
+  }
+  res.status(200).json(post);
+}
+
+module.exports = { createPost, editPost, deletePost, searchPosts, like, comment, getPostComments, removeLike, getFeed, deleteComment, getLikes,getPostById };
