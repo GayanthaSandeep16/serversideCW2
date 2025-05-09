@@ -60,15 +60,32 @@ async function followUser(followerId, followeeId) {
 
 async function unfollowUser(followerId, followeeId) {
   return new Promise((resolve, reject) => {
-    db.run(
-      'DELETE FROM followers WHERE follower_id = ? AND followee_id = ?',
+    // First check if the relationship exists
+    db.get(
+      'SELECT * FROM followers WHERE follower_id = ? AND followee_id = ?',
       [followerId, followeeId],
-      function(err) {
+      (err, row) => {
         if (err) {
-          console.log(`Error unfollowing user: ${err.message}`);
-          return reject(new Error('Failed to unfollow user'));
+          console.log(`Error checking follow relationship: ${err.message}`);
+          return reject(new Error('Failed to check follow relationship'));
         }
-        resolve({ followerId, followeeId });
+
+        if (!row) {
+          return reject(new Error('Not following this user'));
+        }
+
+        // If relationship exists, delete it
+        db.run(
+          'DELETE FROM followers WHERE follower_id = ? AND followee_id = ?',
+          [followerId, followeeId],
+          function(err) {
+            if (err) {
+              console.log(`Error unfollowing user: ${err.message}`);
+              return reject(new Error('Failed to unfollow user'));
+            }
+            resolve({ followerId, followeeId });
+          }
+        );
       }
     );
   });
@@ -119,4 +136,22 @@ async function getFollowingByUserId(userId) {
   });
 }
 
-module.exports = { registerUser, loginUser, followUser, unfollowUser, getUserProfile, updateUserProfile, isTokenBlacklisted, getFollowersbyId, getFollowingByUserId };
+async function getAllUsersExceptCurrent(currentUserId) {
+  return new Promise((resolve, reject) => {
+    db.all(
+      `SELECT u.id, u.username, 
+              CASE WHEN f.follower_id IS NOT NULL THEN 1 ELSE 0 END AS isFollowed
+       FROM users u
+       LEFT JOIN followers f ON u.id = f.followee_id AND f.follower_id = ?
+       WHERE u.id != ?`,
+      [currentUserId, currentUserId],
+      (err, rows) => {
+        if (err) reject(err);
+        resolve(rows);
+      }
+    );
+  });
+}
+
+
+module.exports = { registerUser, loginUser, followUser, unfollowUser, getUserProfile, updateUserProfile, isTokenBlacklisted, getFollowersbyId, getFollowingByUserId,getAllUsersExceptCurrent };

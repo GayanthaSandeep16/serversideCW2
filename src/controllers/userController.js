@@ -1,4 +1,4 @@
-const { registerUser, loginUser, followUser, unfollowUser,getUserProfile,getFollowersbyId,getFollowingByUserId,updateUserProfile } = require('../services/userService.js');
+const { registerUser, loginUser, followUser, unfollowUser,getUserProfile,getFollowersbyId,getFollowingByUserId,updateUserProfile,getAllUsersExceptCurrent } = require('../services/userService.js');
 const { HTTP_STATUS } = require('../utils/constants.js');
 
 async function register(req, res, next) {
@@ -66,5 +66,16 @@ async function getFollowing(req, res) {
   res.status(200).json(following);
 }
 
+async function getAllUsers(req, res) {
+  try {
+    const users = await getAllUsersExceptCurrent(req.user.id);
+    res.status(200).json(users);
+  } catch (error) {
+    logger.error(`Error fetching users: ${error.message}`);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+}
 
-module.exports = { register, login, follow, unfollow, getProfile, updateProfile, getFollowers, getFollowing };
+
+
+module.exports = { register, login, follow, unfollow, getProfile, updateProfile, getFollowers, getFollowing, getAllUsers };
