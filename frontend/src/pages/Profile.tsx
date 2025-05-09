@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { Card, Row, Col, Button, Spinner } from 'react-bootstrap';
 import api from '../utils/axios';
 import { useAuth } from '../context/AuthContext';
@@ -129,9 +129,9 @@ const Profile: React.FC = () => {
                 </Card.Subtitle>
                 <Card.Text>{post.content.substring(0, 150)}...</Card.Text>
                 <div className="d-flex justify-content-between align-items-center">
-                  <Button variant="primary" href={`/post/${post.id}`}>
+                  <Link to={`/post/${post.id}`} className="btn btn-primary">
                     Read More
-                  </Button>
+                  </Link>
                   <span className="text-muted">
                     <i className="bi bi-heart-fill"></i> {post.likes} likes
                   </span>
