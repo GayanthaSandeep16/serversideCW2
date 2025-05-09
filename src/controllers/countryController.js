@@ -1,4 +1,4 @@
-const { getCountryInfo, getAllCountriesNames } = require('../services/countryService');
+const {  getAllCountriesNames,getCountryData } = require('../services/countryService');
 const { HTTP_STATUS } = require('../utils/constants.js');
 
 
@@ -8,7 +8,7 @@ async function getCountry(req, res, next) {
     if (!country) {
       return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'Country parameter is required' });
     }
-    const countryInfo = await getCountryInfo(country);
+    const countryInfo = await getCountryData(country);
     res.status(HTTP_STATUS.OK).json(countryInfo);
   } catch (error) {
     next(error);

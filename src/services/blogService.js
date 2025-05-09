@@ -1,16 +1,16 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
-const { fetchCountryData } = require('../utils/apiUtils');
+const { getCountryData } = require('../services/countryService');
 const { HTTP_STATUS, ERROR_MESSAGES } = require('../utils/constants');
 
 const db = new sqlite3.Database(path.join(__dirname, '..', 'data', 'traveltales.db'));
 
 async function createBlogPost(userId, title, content, country, dateOfVisit) {
-  const countryData = await fetchCountryData(country);
+  const countryData = await getCountryData(country);
   return new Promise((resolve, reject) => {
     db.run(
       'INSERT INTO posts (user_id, title, content, country, date_of_visit, flag, currency, capital) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-      [userId, title, content, country, dateOfVisit, countryData.flag, countryData.currency, countryData.capital],
+      [userId, title, content, country, dateOfVisit, countryData.flag, countryData.currency.name, countryData.capital],
       function(err) {
         if (err) {
           console.log(`Error creating blog post: ${err.message}`);
@@ -23,11 +23,11 @@ async function createBlogPost(userId, title, content, country, dateOfVisit) {
 }
 
 async function editBlogPost(postId, userId, title, content, country, dateOfVisit) {
-  const countryData = await fetchCountryData(country);
+  const countryData = await getCountryData(country);
   return new Promise((resolve, reject) => {
     db.run(
       'UPDATE posts SET title = ?, content = ?, country = ?, date_of_visit = ?, flag = ?, currency = ?, capital = ? WHERE id = ? AND user_id = ?',
-      [title, content, country, dateOfVisit, countryData.flag, countryData.currency, countryData.capital, postId, userId],
+      [title, content, country, dateOfVisit, countryData.flag, countryData.currency.name, countryData.capital, postId, userId],
       function(err) {
         if (err) {
           console.log(`Error updating blog post: ${err.message}`);
