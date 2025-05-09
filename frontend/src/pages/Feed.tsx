@@ -14,6 +14,8 @@ interface Post {
   currency: string;
   capital: string;
   date_of_visit: string;
+  like_count?: number;
+  dislike_count?: number;
 }
 
 interface Comment {

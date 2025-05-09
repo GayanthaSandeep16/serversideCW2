@@ -10,6 +10,7 @@ interface Post {
   country: string;
   username: string;
   like_count: number | null;
+  dislike_count: number | null;
   created_at: string;
 }
 
@@ -81,9 +82,14 @@ const Home: React.FC = () => {
           <Link to={`/post/${post.id}`} className="btn btn-primary">
             Read More
           </Link>
-          <span className="text-muted">
-            <i className="bi bi-heart-fill"></i> {post.like_count ?? 0} likes
-          </span>
+          <div className="text-muted">
+            <span className="me-3">
+              <i className="bi bi-hand-thumbs-up-fill"></i> {post.like_count ?? 0}
+            </span>
+            <span>
+              <i className="bi bi-hand-thumbs-down-fill"></i> {post.dislike_count ?? 0}
+            </span>
+          </div>
         </div>
       </Card.Body>
     </Card>
