@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Row, Col, Spinner, Button } from 'react-bootstrap';
+import { Card, Row, Col, Spinner, Button, Form } from 'react-bootstrap';
 import api from '../utils/axios';
 import { Link } from 'react-router-dom';
 
@@ -15,41 +15,27 @@ interface Post {
 }
 
 const Home: React.FC = () => {
-  const [recentPosts, setRecentPosts] = useState<Post[]>([]);
-  const [popularPosts, setPopularPosts] = useState<Post[]>([]);
-  const [recentPage, setRecentPage] = useState(1);
-  const [popularPage, setPopularPage] = useState(1);
-  const [hasMoreRecent, setHasMoreRecent] = useState(true);
-  const [hasMorePopular, setHasMorePopular] = useState(true);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(true);
+  const [sortBy, setSortBy] = useState<'newest' | 'mostLiked' | 'mostCommented'>('newest');
+  const postsPerPage = 10;
 
   useEffect(() => {
     const fetchPosts = async () => {
       setLoading(true);
       try {
-        const [recentResponse, popularResponse] = await Promise.all([
-          api.get('/blogs/search', {
-            params: {
-              sortBy: 'newest',
-              page: recentPage,
-              limit: 10,
-            },
-          }),
-          api.get('/blogs/search', {
-            params: {
-              sortBy: 'mostLiked',
-              page: popularPage,
-              limit: 10,
-            },
-          }),
-        ]);
+        const response = await api.get('/blogs/search', {
+          params: {
+            sortBy,
+            page,
+            limit: postsPerPage,
+          },
+        });
 
-        setRecentPosts(recentResponse.data);
-        setPopularPosts(popularResponse.data);
-
-        // Check if there are more posts to load
-        setHasMoreRecent(recentResponse.data.length === 10);
-        setHasMorePopular(popularResponse.data.length === 10);
+        setPosts(response.data);
+        setHasMore(response.data.length === postsPerPage);
       } catch (error) {
         console.error('Error fetching posts:', error);
       } finally {
@@ -58,7 +44,25 @@ const Home: React.FC = () => {
     };
 
     fetchPosts();
-  }, [recentPage, popularPage]);
+  }, [page, sortBy]);
+
+  const handleSortChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setSortBy(event.target.value as 'newest' | 'mostLiked' | 'mostCommented');
+    setPage(1); // Reset to first page when sort changes
+  };
+
+  const getSectionTitle = () => {
+    switch (sortBy) {
+      case 'newest':
+        return 'Recent Posts';
+      case 'mostLiked':
+        return 'Most Liked Posts';
+      case 'mostCommented':
+        return 'Most Commented Posts';
+      default:
+        return 'Posts';
+    }
+  };
 
   if (loading) {
     return (
@@ -97,57 +101,50 @@ const Home: React.FC = () => {
 
   return (
     <div className="container">
-      <h2 className="mb-4">Recent Posts</h2>
-      <Row>
-        {recentPosts.map((post) => (
-          <Col key={post.id} md={6} lg={4}>
-            <PostCard post={post} />
-          </Col>
-        ))}
-      </Row>
-      <div className="d-flex justify-content-between mb-5">
-        <Button
-          variant="outline-primary"
-          onClick={() => setRecentPage((prev) => Math.max(prev - 1, 1))}
-          disabled={recentPage === 1}
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h2>{getSectionTitle()}</h2>
+        <Form.Select
+          style={{ width: '200px' }}
+          value={sortBy}
+          onChange={handleSortChange}
         >
-          Previous
-        </Button>
-        <span>Page {recentPage}</span>
-        <Button
-          variant="outline-primary"
-          onClick={() => setRecentPage((prev) => prev + 1)}
-          disabled={!hasMoreRecent}
-        >
-          Next
-        </Button>
+          <option value="newest">Recent</option>
+          <option value="mostLiked">Most Liked</option>
+          <option value="mostCommented">Most Commented</option>
+        </Form.Select>
       </div>
 
-      <h2 className="mb-4 mt-5">Popular Posts</h2>
+      {posts.length === 0 && (
+        <div className="alert alert-info">No posts to display.</div>
+      )}
+
       <Row>
-        {popularPosts.map((post) => (
-          <Col key={post.id} md={6} lg={4}>
+        {posts.map((post) => (
+          <Col key={post.id} xs={12} md={6} lg={4}>
             <PostCard post={post} />
           </Col>
         ))}
       </Row>
-      <div className="d-flex justify-content-between mb-5">
-        <Button
-          variant="outline-primary"
-          onClick={() => setPopularPage((prev) => Math.max(prev - 1, 1))}
-          disabled={popularPage === 1}
-        >
-          Previous
-        </Button>
-        <span>Page {popularPage}</span>
-        <Button
-          variant="outline-primary"
-          onClick={() => setPopularPage((prev) => prev + 1)}
-          disabled={!hasMorePopular}
-        >
-          Next
-        </Button>
-      </div>
+
+      {posts.length > 0 && (
+        <div className="d-flex justify-content-between mb-5">
+          <Button
+            variant="outline-primary"
+            onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+            disabled={page === 1}
+          >
+            Previous
+          </Button>
+          <span>Page {page}</span>
+          <Button
+            variant="outline-primary"
+            onClick={() => setPage((prev) => prev + 1)}
+            disabled={!hasMore}
+          >
+            Next
+          </Button>
+        </div>
+      )}
     </div>
   );
 };

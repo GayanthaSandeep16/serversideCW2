@@ -25,7 +25,7 @@ const NavigationBar: React.FC = () => {
           <Navbar.Collapse id="basic-navbar-nav">
             <Nav className="me-auto">
               <Nav.Link as={Link} to="/">Home</Nav.Link>
-              <Nav.Link as={Link} to="/search">Search Countries</Nav.Link>
+              <Nav.Link as={Link} to="/search">Search</Nav.Link>
               {isAuthenticated && (
                 <>
                   <Nav.Link as={Link} to="/feed">Feed</Nav.Link>
