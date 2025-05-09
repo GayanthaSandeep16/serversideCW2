@@ -139,8 +139,13 @@ async function getFollowingByUserId(userId) {
 async function getAllUsersExceptCurrent(currentUserId) {
   return new Promise((resolve, reject) => {
     db.all(
-      `SELECT u.id, u.username, 
-              CASE WHEN f.follower_id IS NOT NULL THEN 1 ELSE 0 END AS isFollowed
+      `SELECT 
+        u.id, 
+        u.username,
+        u.email,
+        (SELECT COUNT(*) FROM followers WHERE followee_id = u.id) as followers,
+        (SELECT COUNT(*) FROM followers WHERE follower_id = u.id) as following,
+        CASE WHEN f.follower_id IS NOT NULL THEN 1 ELSE 0 END AS isFollowed
        FROM users u
        LEFT JOIN followers f ON u.id = f.followee_id AND f.follower_id = ?
        WHERE u.id != ?`,

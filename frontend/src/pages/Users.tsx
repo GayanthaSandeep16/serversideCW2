@@ -121,10 +121,10 @@ const Users: React.FC = () => {
                 </div>
                 <div className="d-flex gap-4 mt-3">
                   <div>
-                    <strong>{user.followers}</strong> followers
+                    <strong>{user.followers || 0}</strong> followers
                   </div>
                   <div>
-                    <strong>{user.following}</strong> following
+                    <strong>{user.following || 0}</strong> following
                   </div>
                 </div>
               </Card.Body>
