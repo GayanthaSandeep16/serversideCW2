@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { createPost, editPost, deletePost, searchPosts, like, comment, getPostComments, removeLike, getFeed, deleteComment, getLikes } = require('../controllers/blogController');
+const { createPost, editPost, deletePost, searchPosts, like, comment, getPostComments, removeLike, getFeed, deleteComment, getLikes, getPostById } = require('../controllers/blogController');
 const { authenticateToken } = require('../middleware/authMiddleware');
 
 router.post('/', authenticateToken, createPost);
@@ -14,6 +14,5 @@ router.delete('/like', authenticateToken, removeLike);
 router.get('/feed', authenticateToken, getFeed);
 router.delete('/comment', authenticateToken, deleteComment);
 router.get('/:postId/likes', authenticateToken, getLikes);
-router.get('/search', searchPosts);
-
+router.get('/:postId', getPostById);
 module.exports = router;
