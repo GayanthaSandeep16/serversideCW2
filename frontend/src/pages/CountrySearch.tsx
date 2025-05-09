@@ -1,136 +1,305 @@
 import React, { useState, useEffect } from 'react';
-import { Form, Card, Row, Col, Spinner } from 'react-bootstrap';
+import { Form, Card, Row, Col, Spinner, Button, Tabs, Tab } from 'react-bootstrap';
 import api from '../utils/axios';
 import { Link } from 'react-router-dom';
 
-interface Country {
-  name: string;
-  capital: string;
-  currency: string;
-  flag: string;
-}
-
 interface Post {
-  id: string;
+  id: number;
   title: string;
   content: string;
-  author: {
-    username: string;
-  };
-  likes: number;
-  createdAt: string;
+  country: string;
+  username: string;
+  like_count: number | null;
+  dislike_count: number | null;
+  created_at: string;
+}
+
+interface CountryDetails {
+  name: string;
+  capital: string;
+  flag: string;
+  currency: string;
+  // Add more fields as needed when backend is implemented
 }
 
 const CountrySearch: React.FC = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [country, setCountry] = useState<Country | null>(null);
+  // Post Search States
+  const [countryFilter, setCountryFilter] = useState('');
+  const [usernameFilter, setUsernameFilter] = useState('');
+  const [filteredCountries, setFilteredCountries] = useState<string[]>([]);
+  const [showCountrySuggestions, setShowCountrySuggestions] = useState(false);
   const [posts, setPosts] = useState<Post[]>([]);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const postsPerPage = 10;
 
+  // Country Details Search States
+  const [countries, setCountries] = useState<string[]>([]);
+  const [selectedCountry, setSelectedCountry] = useState('');
+  const [countryDetails, setCountryDetails] = useState<CountryDetails | null>(null);
+  const [loadingCountry, setLoadingCountry] = useState(false);
+
+  // Fetch all country names on mount
   useEffect(() => {
-    const searchCountry = async () => {
-      if (!searchTerm.trim()) {
-        setCountry(null);
+    const fetchCountries = async () => {
+      try {
+        const response = await api.get('/countries/all');
+        const countryNames = Array.isArray(response.data)
+          ? response.data
+          : response.data.map((c: any) => c.name);
+        setCountries(countryNames.sort());
+      } catch (error) {
+        console.error('Error fetching countries:', error);
+      }
+    };
+
+    fetchCountries();
+  }, []);
+
+  // Filter countries based on input
+  useEffect(() => {
+    if (countryFilter.trim()) {
+      const filtered = countries.filter(country =>
+        country.toLowerCase().includes(countryFilter.toLowerCase())
+      );
+      setFilteredCountries(filtered);
+    } else {
+      setFilteredCountries([]);
+    }
+  }, [countryFilter, countries]);
+
+  // Fetch posts when filters or page changes
+  useEffect(() => {
+    const searchPosts = async () => {
+      if (!countryFilter.trim() && !usernameFilter.trim()) {
         setPosts([]);
+        setError('');
         return;
       }
 
       setLoading(true);
       try {
-        const [countryResponse, postsResponse] = await Promise.all([
-          api.get(`/countries/${searchTerm}`),
-          api.get(`/posts/country/${searchTerm}`)
-        ]);
-        setCountry(countryResponse.data);
-        setPosts(postsResponse.data);
+        const params: any = { page, limit: postsPerPage };
+        if (countryFilter.trim()) {
+          params.country = countryFilter;
+        }
+        if (usernameFilter.trim()) {
+          params.username = usernameFilter;
+        }
+
+        const response = await api.get('/blogs/search', { params });
+        setPosts(response.data);
+        setHasMore(response.data.length === postsPerPage);
         setError('');
       } catch (error) {
-        setError('Country not found');
-        setCountry(null);
+        setError('No posts found matching your criteria');
         setPosts([]);
       } finally {
         setLoading(false);
       }
     };
 
-    const debounceTimer = setTimeout(searchCountry, 500);
+    const debounceTimer = setTimeout(searchPosts, 500);
     return () => clearTimeout(debounceTimer);
-  }, [searchTerm]);
+  }, [countryFilter, usernameFilter, page]);
 
-  return (
-    <div className="container">
-      <h2 className="mb-4">Search Countries</h2>
-      <Form className="mb-4">
-        <Form.Group>
-          <Form.Control
-            type="text"
-            placeholder="Enter country name..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </Form.Group>
-      </Form>
+  const handleCountrySelect = (country: string) => {
+    setCountryFilter(country);
+    setShowCountrySuggestions(false);
+  };
 
-      {loading && (
-        <div className="text-center">
+  const handleCountrySelectDetails = async (country: string) => {
+    setSelectedCountry(country);
+    setLoadingCountry(true);
+    try {
+      // This will be implemented when backend is ready
+      // const response = await api.get(`/countries/${country}`);
+      // setCountryDetails(response.data);
+      setCountryDetails(null); // Remove this when backend is implemented
+    } catch (error) {
+      console.error('Error fetching country details:', error);
+    } finally {
+      setLoadingCountry(false);
+    }
+  };
+
+  const PostCard: React.FC<{ post: Post }> = ({ post }) => (
+    <Card className="mb-4">
+      <Card.Body>
+        <Card.Title>{post.title}</Card.Title>
+        <Card.Subtitle className="mb-2 text-muted">
+          By {post.username} • {new Date(post.created_at).toLocaleDateString()} • {post.country}
+        </Card.Subtitle>
+        <Card.Text>{post.content.substring(0, 150)}...</Card.Text>
+        <div className="d-flex justify-content-between align-items-center">
+          <Link to={`/post/${post.id}`} className="btn btn-primary">
+            Read More
+          </Link>
+          <div className="text-muted">
+            <span className="me-3">
+              <i className="bi bi-hand-thumbs-up-fill"></i> {post.like_count ?? 0}
+            </span>
+            <span>
+              <i className="bi bi-hand-thumbs-down-fill"></i> {post.dislike_count ?? 0}
+            </span>
+          </div>
+        </div>
+      </Card.Body>
+    </Card>
+  );
+
+  const CountryDetailsCard: React.FC = () => (
+    <Card className="mb-4">
+      <Card.Body>
+        <Card.Title>{selectedCountry}</Card.Title>
+        {loadingCountry ? (
           <Spinner animation="border" role="status">
             <span className="visually-hidden">Loading...</span>
           </Spinner>
-        </div>
-      )}
+        ) : countryDetails ? (
+          <>
+            <Card.Text>Capital: {countryDetails.capital}</Card.Text>
+            <Card.Text>Currency: {countryDetails.currency}</Card.Text>
+            {countryDetails.flag && (
+              <img src={countryDetails.flag} alt={`${selectedCountry} flag`} style={{ maxWidth: '200px' }} />
+            )}
+          </>
+        ) : (
+          <Card.Text>Country details will be available when backend is implemented</Card.Text>
+        )}
+      </Card.Body>
+    </Card>
+  );
 
-      {error && <div className="text-danger mb-4">{error}</div>}
-
-      {country && (
-        <Card className="mb-4">
-          <Card.Body>
-            <div className="d-flex align-items-center">
-              <img
-                src={country.flag}
-                alt={`${country.name} flag`}
-                style={{ width: '100px', marginRight: '20px' }}
-              />
-              <div>
-                <h3>{country.name}</h3>
-                <p className="mb-1">Capital: {country.capital}</p>
-                <p className="mb-0">Currency: {country.currency}</p>
-              </div>
-            </div>
-          </Card.Body>
-        </Card>
-      )}
-
-      {posts.length > 0 && (
-        <>
-          <h3 className="mb-4">Posts about {country?.name}</h3>
-          <Row>
-            {posts.map((post) => (
-              <Col key={post.id} md={6} lg={4}>
-                <Card className="mb-4">
-                  <Card.Body>
-                    <Card.Title>{post.title}</Card.Title>
-                    <Card.Subtitle className="mb-2 text-muted">
-                      By {post.author.username} • {new Date(post.createdAt).toLocaleDateString()}
-                    </Card.Subtitle>
-                    <Card.Text>{post.content.substring(0, 150)}...</Card.Text>
-                    <div className="d-flex justify-content-between align-items-center">
-                      <Link to={`/post/${post.id}`} className="btn btn-primary">
-                        Read More
-                      </Link>
-                      <span className="text-muted">
-                        <i className="bi bi-heart-fill"></i> {post.likes} likes
-                      </span>
-                    </div>
-                  </Card.Body>
-                </Card>
+  return (
+    <div className="container">
+      <h2 className="mb-4">Search</h2>
+      <Tabs defaultActiveKey="posts" className="mb-4">
+        <Tab eventKey="posts" title="Search Posts">
+          <Form className="mb-4">
+            <Row>
+              <Col md={6} className="mb-3">
+                <Form.Group>
+                  <Form.Label>Country</Form.Label>
+                  <div className="position-relative">
+                    <Form.Control
+                      type="text"
+                      placeholder="Search country..."
+                      value={countryFilter}
+                      onChange={(e) => {
+                        setCountryFilter(e.target.value);
+                        setShowCountrySuggestions(true);
+                      }}
+                      onFocus={() => setShowCountrySuggestions(true)}
+                    />
+                    {showCountrySuggestions && filteredCountries.length > 0 && (
+                      <div 
+                        className="position-absolute w-100 bg-white border rounded-bottom shadow-sm"
+                        style={{ zIndex: 1000, maxHeight: '200px', overflowY: 'auto' }}
+                      >
+                        {filteredCountries.map((country) => (
+                          <div
+                            key={country}
+                            className="p-2 hover-bg-light cursor-pointer"
+                            style={{ cursor: 'pointer' }}
+                            onClick={() => handleCountrySelect(country)}
+                            onMouseDown={(e) => e.preventDefault()}
+                          >
+                            {country}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </Form.Group>
               </Col>
-            ))}
-          </Row>
-        </>
-      )}
+              <Col md={6} className="mb-3">
+                <Form.Group>
+                  <Form.Label>Username</Form.Label>
+                  <Form.Control
+                    type="text"
+                    placeholder="Search by username..."
+                    value={usernameFilter}
+                    onChange={(e) => setUsernameFilter(e.target.value)}
+                  />
+                </Form.Group>
+              </Col>
+            </Row>
+          </Form>
+
+          {loading && (
+            <div className="text-center">
+              <Spinner animation="border" role="status">
+                <span className="visually-hidden">Loading...</span>
+              </Spinner>
+            </div>
+          )}
+
+          {error && <div className="text-danger mb-4">{error}</div>}
+
+          {posts.length > 0 && (
+            <>
+              <h3 className="mb-4">
+                Posts
+                {(countryFilter || usernameFilter) && (
+                  <small className="text-muted">
+                    {countryFilter && ` about ${countryFilter}`}
+                    {usernameFilter && ` by ${usernameFilter}`}
+                  </small>
+                )}
+              </h3>
+              <Row>
+                {posts.map((post) => (
+                  <Col key={post.id} xs={12} md={6} lg={4}>
+                    <PostCard post={post} />
+                  </Col>
+                ))}
+              </Row>
+              <div className="d-flex justify-content-between mb-5">
+                <Button
+                  variant="outline-primary"
+                  onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+                  disabled={page === 1}
+                >
+                  Previous
+                </Button>
+                <span>Page {page}</span>
+                <Button
+                  variant="outline-primary"
+                  onClick={() => setPage((prev) => prev + 1)}
+                  disabled={!hasMore}
+                >
+                  Next
+                </Button>
+              </div>
+            </>
+          )}
+        </Tab>
+
+        <Tab eventKey="countryDetails" title="Country Details">
+          <Form className="mb-4">
+            <Form.Group>
+              <Form.Select
+                value={selectedCountry}
+                onChange={(e) => handleCountrySelectDetails(e.target.value)}
+              >
+                <option value="">Select a country...</option>
+                {countries.map((country) => (
+                  <option key={country} value={country}>
+                    {country}
+                  </option>
+                ))}
+              </Form.Select>
+            </Form.Group>
+          </Form>
+
+          {selectedCountry && <CountryDetailsCard />}
+        </Tab>
+      </Tabs>
     </div>
   );
 };
 
-export default CountrySearch; 
+export default CountrySearch;
