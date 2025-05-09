@@ -68,7 +68,8 @@ async function getBlogPosts({ country, username, page = 1, limit = 10, sortBy = 
   let query = `
     SELECT p.*, u.username,
     SUM(CASE WHEN l.is_like = 1 THEN 1 ELSE 0 END) as like_count,
-    SUM(CASE WHEN l.is_like = 0 THEN 1 ELSE 0 END) as dislike_count
+    SUM(CASE WHEN l.is_like = 0 THEN 1 ELSE 0 END) as dislike_count,
+    (SELECT COUNT(*) FROM comments WHERE post_id = p.id) as comment_count
     FROM posts p 
     JOIN users u ON p.user_id = u.id 
     LEFT JOIN likes l ON p.id = l.post_id
