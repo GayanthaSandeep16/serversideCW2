@@ -1,11 +1,21 @@
-const { fetchCountryData, fetchAllCountriesNames } = require('../utils/apiUtils.js');
+const { fetchAllCountriesNames } = require('../utils/apiUtils.js');
 
-async function getCountryInfo(countryName) {
+require('dotenv').config();
+const axios = require('axios');
+
+
+
+async function getCountryData(countryName) {
     try {
-        const countryData = await fetchCountryData(countryName);
-        return countryData;
+        const response = await axios.get(`http://localhost:3000/api/country/${countryName}`, {
+            headers: {
+                'Authorization': process.env.AUTH_TOKEN
+            }
+        });
+        return response.data;
     } catch (error) {
-        throw error;
+        console.error('Error fetching country data:', error);
+        throw new Error('Failed to fetch country data');
     }
 }
 
@@ -19,4 +29,4 @@ async function getAllCountriesNames() {
     }
 }
 
-module.exports = { getCountryInfo, getAllCountriesNames };
+module.exports = { getCountryData, getAllCountriesNames };
