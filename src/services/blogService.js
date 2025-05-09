@@ -3,7 +3,6 @@ const path = require('path');
 const { fetchCountryData } = require('../utils/apiUtils');
 const { HTTP_STATUS, ERROR_MESSAGES } = require('../utils/constants');
 
-
 const db = new sqlite3.Database(path.join(__dirname, '..', 'data', 'traveltales.db'));
 
 async function createBlogPost(userId, title, content, country, dateOfVisit) {
@@ -170,16 +169,23 @@ async function getFollowedPosts(userId, page = 1, limit = 10) {
   const offset = (page - 1) * limit;
   return new Promise((resolve, reject) => {
     db.all(
-      `SELECT p.*, u.username 
+      `SELECT p.*, u.username,
+       SUM(CASE WHEN l.is_like = 1 THEN 1 ELSE 0 END) as like_count,
+       SUM(CASE WHEN l.is_like = 0 THEN 1 ELSE 0 END) as dislike_count
        FROM posts p 
        JOIN users u ON p.user_id = u.id 
        JOIN followers f ON p.user_id = f.followee_id 
+       LEFT JOIN likes l ON p.id = l.post_id
        WHERE f.follower_id = ? 
+       GROUP BY p.id, p.user_id, p.title, p.content, p.country, p.created_at, u.username
        ORDER BY p.created_at DESC 
        LIMIT ? OFFSET ?`,
       [userId, limit, offset],
       (err, rows) => {
-        if (err) reject(err);
+        if (err) {
+          console.log(`Error fetching followed posts: ${err.message}`);
+          reject(err);
+        }
         resolve(rows);
       }
     );
@@ -205,4 +211,32 @@ async function getPostLikes(postId) {
   });
 }
 
-module.exports = { createBlogPost, editBlogPost, deleteBlogPost, getBlogPosts, likePost, createComment, getComments, removeLikeInPost, getFollowedPosts, deleteCommentInPost, getPostLikes };
+async function getBlogPostById(postId) {
+  return new Promise((resolve, reject) => {
+    db.get(
+      `SELECT 
+        p.*,
+        u.username,
+        COALESCE(SUM(CASE WHEN l.is_like = 1 THEN 1 ELSE 0 END), 0) as like_count,
+        COALESCE(SUM(CASE WHEN l.is_like = 0 THEN 1 ELSE 0 END), 0) as dislike_count
+      FROM posts p 
+      JOIN users u ON p.user_id = u.id 
+      LEFT JOIN likes l ON p.id = l.post_id
+      WHERE p.id = ?
+      GROUP BY p.id, p.user_id, p.title, p.content, p.country, p.date_of_visit, p.flag, p.currency, p.capital, p.created_at, u.username`,
+      [postId],
+      (err, row) => {
+        if (err) {
+          console.log(`Error fetching blog post: ${err.message}`);
+          return reject(new Error('Failed to fetch blog post'));
+        }
+        if (!row) {
+          return reject(new Error('Post not found'));
+        }
+        resolve(row);
+      }
+    );
+  });
+}
+
+module.exports = { createBlogPost, editBlogPost, deleteBlogPost, getBlogPosts, likePost, createComment, getComments, removeLikeInPost, getFollowedPosts, deleteCommentInPost, getPostLikes, getBlogPostById };
