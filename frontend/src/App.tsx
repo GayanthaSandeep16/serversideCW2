@@ -8,6 +8,7 @@ import CreatePost from './pages/CreatePost';
 import CountrySearch from './pages/CountrySearch';
 import Feed from './pages/Feed';
 import Users from './pages/Users';
+import PostDetail from './pages/PostDetail';
 import { AuthProvider } from './context/AuthContext';
 
 function App() {
@@ -24,6 +25,7 @@ function App() {
               <Route path="/profile/:username" element={<Profile />} />
               <Route path="/feed" element={<Feed />} />
               <Route path="/users" element={<Users />} />
+              <Route path="/post/:id" element={<PostDetail />} />
             </Routes>
           </div>
         </div>

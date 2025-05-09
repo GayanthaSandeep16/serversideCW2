@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Card, Row, Col, Button, Spinner, Pagination, Form, ListGroup } from 'react-bootstrap';
 import api from '../utils/axios';
 import { useAuth } from '../context/AuthContext';
+import { Link } from 'react-router-dom';
 
 interface Post {
   id: number;
@@ -14,8 +15,8 @@ interface Post {
   currency: string;
   capital: string;
   date_of_visit: string;
-  like_count?: number;
-  dislike_count?: number;
+  like_count: number | null;
+  dislike_count: number | null;
 }
 
 interface Comment {
@@ -36,8 +37,6 @@ const Feed: React.FC = () => {
   const [comments, setComments] = useState<{ [key: number]: Comment[] }>({});
   const [newComment, setNewComment] = useState<{ [key: number]: string }>({});
   const [likedPosts, setLikedPosts] = useState<{ [key: number]: boolean | undefined }>({});
-  const [likeCounts, setLikeCounts] = useState<{ [key: number]: number }>({});
-  const [dislikeCounts, setDislikeCounts] = useState<{ [key: number]: number }>({});
   const postsPerPage = 10;
 
   const fetchPosts = async (page: number) => {
@@ -54,8 +53,8 @@ const Feed: React.FC = () => {
       setHasMore(response.data.length === postsPerPage);
       
       response.data.forEach((post: Post) => {
-        fetchLikes(post.id);
         fetchComments(post.id);
+        fetchUserLike(post.id);
       });
     } catch (err) {
       setError('Failed to load your feed. Please try again later.');
@@ -65,20 +64,16 @@ const Feed: React.FC = () => {
     }
   };
 
-  const fetchLikes = async (postId: number) => {
+  const fetchUserLike = async (postId: number) => {
     try {
       const response = await api.get(`/blogs/${postId}/likes`);
-      const likes = response.data.filter((like: any) => like.is_like === true).length;
-      const dislikes = response.data.filter((like: any) => like.is_like === false).length;
-      setLikeCounts(prev => ({ ...prev, [postId]: likes }));
-      setDislikeCounts(prev => ({ ...prev, [postId]: dislikes }));
       const userLike = response.data.find((like: any) => like.user_id === user?.id);
       setLikedPosts(prev => ({
         ...prev,
         [postId]: userLike ? userLike.is_like : undefined
       }));
     } catch (err) {
-      console.error('Error fetching likes:', err);
+      console.error('Error fetching user like:', err);
     }
   };
 
@@ -103,7 +98,7 @@ const Feed: React.FC = () => {
         await api.post('/blogs/like', { postId, isLike: true });
         setLikedPosts(prev => ({ ...prev, [postId]: true }));
       }
-      fetchLikes(postId);
+      fetchPosts(currentPage); // Refresh posts to update counts
     } catch (err) {
       console.error('Error handling like:', err);
     }
@@ -118,7 +113,7 @@ const Feed: React.FC = () => {
         await api.post('/blogs/like', { postId, isLike: false });
         setLikedPosts(prev => ({ ...prev, [postId]: false }));
       }
-      fetchLikes(postId);
+      fetchPosts(currentPage); // Refresh posts to update counts
     } catch (err) {
       console.error('Error handling dislike:', err);
     }
@@ -216,7 +211,7 @@ const Feed: React.FC = () => {
                     className="me-2"
                     onClick={() => handleLikeClick(post.id)}
                   >
-                    <i className="bi bi-hand-thumbs-up"></i> {likeCounts[post.id] || 0}
+                    <i className="bi bi-hand-thumbs-up"></i> {post.like_count ?? 0}
                   </Button>
                   <Button
                     variant={likedPosts[post.id] === false ? "danger" : "outline-danger"}
@@ -224,11 +219,11 @@ const Feed: React.FC = () => {
                     className="me-2"
                     onClick={() => handleDislikeClick(post.id)}
                   >
-                    <i className="bi bi-hand-thumbs-down"></i> {dislikeCounts[post.id] || 0}
+                    <i className="bi bi-hand-thumbs-down"></i> {post.dislike_count ?? 0}
                   </Button>
-                  <Button variant="primary" size="sm" href={`/post/${post.id}`}>
+                  <Link to={`/post/${post.id}`} className="btn btn-primary btn-sm">
                     Read More
-                  </Button>
+                  </Link>
                 </div>
 
                 <div className="mt-3">
