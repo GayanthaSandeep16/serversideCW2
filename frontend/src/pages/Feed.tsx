@@ -54,7 +54,7 @@ const Feed: React.FC = () => {
       
       response.data.forEach((post: Post) => {
         fetchComments(post.id);
-        fetchUserLike(post.id);
+        fetchPostLikes(post.id);
       });
     } catch (err) {
       setError('Failed to load your feed. Please try again later.');
@@ -64,16 +64,31 @@ const Feed: React.FC = () => {
     }
   };
 
-  const fetchUserLike = async (postId: number) => {
+  const fetchPostLikes = async (postId: number) => {
     try {
-      const response = await api.get(`/blogs/${postId}/likes`);
-      const userLike = response.data.find((like: any) => like.user_id === user?.id);
+      const [likesResponse, userLikeResponse] = await Promise.all([
+        api.get(`/blogs/${postId}`),
+        api.get(`/blogs/${postId}/likes`)
+      ]);
+      
+      const userLike = userLikeResponse.data.find((like: any) => like.user_id === user?.id);
+      
       setLikedPosts(prev => ({
         ...prev,
         [postId]: userLike ? userLike.is_like : undefined
       }));
+
+      setPosts(prev => prev.map(post => 
+        post.id === postId 
+          ? { 
+              ...post, 
+              like_count: likesResponse.data.like_count,
+              dislike_count: likesResponse.data.dislike_count
+            }
+          : post
+      ));
     } catch (err) {
-      console.error('Error fetching user like:', err);
+      console.error('Error fetching post likes:', err);
     }
   };
 
@@ -92,13 +107,18 @@ const Feed: React.FC = () => {
   const handleLikeClick = async (postId: number) => {
     try {
       if (likedPosts[postId] === true) {
+        // Unlike
         await api.delete('/blogs/like', { data: { postId } });
-        setLikedPosts(prev => ({ ...prev, [postId]: undefined }));
-      } else {
+      } else if (likedPosts[postId] === false) {
+        // Change from dislike to like
+        await api.delete('/blogs/like', { data: { postId } });
         await api.post('/blogs/like', { postId, isLike: true });
-        setLikedPosts(prev => ({ ...prev, [postId]: true }));
+      } else {
+        // New like
+        await api.post('/blogs/like', { postId, isLike: true });
       }
-      fetchPosts(currentPage); // Refresh posts to update counts
+      // Always fetch latest state from backend
+      await fetchPostLikes(postId);
     } catch (err) {
       console.error('Error handling like:', err);
     }
@@ -107,13 +127,18 @@ const Feed: React.FC = () => {
   const handleDislikeClick = async (postId: number) => {
     try {
       if (likedPosts[postId] === false) {
+        // Undislike
         await api.delete('/blogs/like', { data: { postId } });
-        setLikedPosts(prev => ({ ...prev, [postId]: undefined }));
-      } else {
+      } else if (likedPosts[postId] === true) {
+        // Change from like to dislike
+        await api.delete('/blogs/like', { data: { postId } });
         await api.post('/blogs/like', { postId, isLike: false });
-        setLikedPosts(prev => ({ ...prev, [postId]: false }));
+      } else {
+        // New dislike
+        await api.post('/blogs/like', { postId, isLike: false });
       }
-      fetchPosts(currentPage); // Refresh posts to update counts
+      // Always fetch latest state from backend
+      await fetchPostLikes(postId);
     } catch (err) {
       console.error('Error handling dislike:', err);
     }
@@ -210,6 +235,7 @@ const Feed: React.FC = () => {
                     size="sm"
                     className="me-2"
                     onClick={() => handleLikeClick(post.id)}
+                    disabled={!user}
                   >
                     <i className="bi bi-hand-thumbs-up"></i> {post.like_count ?? 0}
                   </Button>
@@ -218,6 +244,7 @@ const Feed: React.FC = () => {
                     size="sm"
                     className="me-2"
                     onClick={() => handleDislikeClick(post.id)}
+                    disabled={!user}
                   >
                     <i className="bi bi-hand-thumbs-down"></i> {post.dislike_count ?? 0}
                   </Button>

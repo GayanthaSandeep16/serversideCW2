@@ -50,6 +50,26 @@ const PostDetail: React.FC = () => {
     fetchPost();
   }, [id]);
 
+  const fetchPostLikes = async () => {
+    try {
+      const [postResponse, likesResponse] = await Promise.all([
+        api.get(`/blogs/${id}`),
+        api.get(`/blogs/${id}/likes`)
+      ]);
+      
+      const userLike = likesResponse.data.find((like: any) => like.user_id === parseInt(user?.id || '0'));
+      setIsLiked(userLike ? userLike.is_like : undefined);
+      
+      setPost(prev => prev ? {
+        ...prev,
+        like_count: postResponse.data.like_count,
+        dislike_count: postResponse.data.dislike_count
+      } : null);
+    } catch (err) {
+      console.error('Error fetching post likes:', err);
+    }
+  };
+
   const fetchPost = async () => {
     try {
       setLoading(true);
@@ -63,23 +83,13 @@ const PostDetail: React.FC = () => {
       });
       await Promise.all([
         fetchComments(),
-        fetchUserLike()
+        fetchPostLikes()
       ]);
     } catch (err) {
       setError('Failed to load post. Please try again later.');
       console.error('Error fetching post:', err);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const fetchUserLike = async () => {
-    try {
-      const response = await api.get(`/blogs/${id}/likes`);
-      const userLike = response.data.find((like: any) => like.user_id === parseInt(user?.id || '0'));
-      setIsLiked(userLike ? userLike.is_like : undefined);
-    } catch (err) {
-      console.error('Error fetching user like:', err);
     }
   };
 
@@ -95,13 +105,18 @@ const PostDetail: React.FC = () => {
   const handleLikeClick = async () => {
     try {
       if (isLiked === true) {
+        // Unlike
         await api.delete('/blogs/like', { data: { postId: id } });
-        setIsLiked(undefined);
-      } else {
+      } else if (isLiked === false) {
+        // Change from dislike to like
+        await api.delete('/blogs/like', { data: { postId: id } });
         await api.post('/blogs/like', { postId: id, isLike: true });
-        setIsLiked(true);
+      } else {
+        // New like
+        await api.post('/blogs/like', { postId: id, isLike: true });
       }
-      fetchPost();
+      // Always fetch latest state from backend
+      await fetchPostLikes();
     } catch (err) {
       console.error('Error handling like:', err);
     }
@@ -110,13 +125,18 @@ const PostDetail: React.FC = () => {
   const handleDislikeClick = async () => {
     try {
       if (isLiked === false) {
+        // Undislike
         await api.delete('/blogs/like', { data: { postId: id } });
-        setIsLiked(undefined);
-      } else {
+      } else if (isLiked === true) {
+        // Change from like to dislike
+        await api.delete('/blogs/like', { data: { postId: id } });
         await api.post('/blogs/like', { postId: id, isLike: false });
-        setIsLiked(false);
+      } else {
+        // New dislike
+        await api.post('/blogs/like', { postId: id, isLike: false });
       }
-      fetchPost();
+      // Always fetch latest state from backend
+      await fetchPostLikes();
     } catch (err) {
       console.error('Error handling dislike:', err);
     }
