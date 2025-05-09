@@ -4,7 +4,7 @@ import api from '../utils/axios';
 import { Link } from 'react-router-dom';
 
 interface Post {
-  id: string;
+  id: number;
   title: string;
   content: string;
   country: string;
