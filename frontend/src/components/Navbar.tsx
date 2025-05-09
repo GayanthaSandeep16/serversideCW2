@@ -30,6 +30,7 @@ const NavigationBar: React.FC = () => {
                 <>
                   <Nav.Link as={Link} to="/feed">Feed</Nav.Link>
                   <Nav.Link as={Link} to="/create">Create Post</Nav.Link>
+                  <Nav.Link as={Link} to="/users">Discover Users</Nav.Link>
                   <Nav.Link as={Link} to={`/profile/${user?.id}`}>My Profile</Nav.Link>
                 </>
               )}
