@@ -1,7 +1,6 @@
 const { createBlogPost, editBlogPost, deleteBlogPost, getBlogPosts, likePost, createComment, getComments, removeLikeInPost, getFollowedPosts, deleteCommentInPost, getPostLikes } = require('../services/blogService');
 const { HTTP_STATUS } = require('../utils/constants');
 
-
 async function createPost(req, res, next) {
   try {
     const { title, content, country, dateOfVisit } = req.body;
@@ -69,14 +68,19 @@ async function comment(req, res, next) {
 
 async function getPostComments(req, res, next) {
   try {
-    const { postId } = req.params;
-    const { page, limit } = req.query;
-    const comments = await getComments(postId, parseInt(page), parseInt(limit));
+    const postId = parseInt(req.params.postId);
+    if (isNaN(postId)) {
+      return res.status(400).json({ error: 'Invalid postId' });
+    }
+    const page = isNaN(parseInt(req.query.page)) ? 1 : parseInt(req.query.page);
+    const limit = isNaN(parseInt(req.query.limit)) ? 10 : parseInt(req.query.limit);
+    const comments = await getComments(postId, page, limit);
     res.status(HTTP_STATUS.OK).json(comments);
   } catch (error) {
     next(error);
   }
 }
+
 async function removeLike(req, res) {
   const { postId } = req.body;
   const userId = req.user.id;

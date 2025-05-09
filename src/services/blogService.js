@@ -146,7 +146,7 @@ async function getComments(postId, page = 1, limit = 10) {
   return new Promise((resolve, reject) => {
     db.all(
       'SELECT c.*, u.username FROM comments c JOIN users u ON c.user_id = u.id WHERE c.post_id = ? ORDER BY c.created_at DESC LIMIT ? OFFSET ?',
-      [postId, limit, offset],
+      [parseInt(postId), parseInt(limit), parseInt(offset)],
       (err, rows) => {
         if (err) {
           console.log(`Error fetching comments: ${err.message}`);
