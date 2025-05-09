@@ -18,7 +18,7 @@ interface Post {
   content: string;
   country: string;
   likes: number;
-  createdAt: string;
+  created_at: string;
 }
 
 interface FollowUser {
@@ -263,7 +263,11 @@ const Profile: React.FC = () => {
               <Card.Body>
                 <Card.Title>{post.title}</Card.Title>
                 <Card.Subtitle className="mb-2 text-muted">
-                  {new Date(post.createdAt).toLocaleDateString()}
+                  {post.created_at ? new Date(post.created_at).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  }) : 'No date available'}
                 </Card.Subtitle>
                 <Card.Text>{post.content.substring(0, 150)}...</Card.Text>
                 <div className="d-flex justify-content-between align-items-center">
