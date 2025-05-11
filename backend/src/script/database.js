@@ -1,45 +1,32 @@
+// backend/script/database.js
 const fs = require('fs');
 const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
-
-// Configuration
-const config = {
-  dbDirectory: path.join(__dirname, '..', 'data'),
-  dbFilename: 'traveltales.db',
-  sqlScript: path.join(__dirname, '..', 'sql', 'init-db.sql')
-};
-
-// Validate and create directory structure
-const ensureDbDirectoryExists = () => {
-  try {
-    if (!fs.existsSync(config.dbDirectory)) {
-      fs.mkdirSync(config.dbDirectory, { recursive: true });
-      console.log(`Created database directory: ${config.dbDirectory}`);
-    }
-    return true;
-  } catch (err) {
-    console.error(`Failed to create database directory: ${err.message}`);
-    return false;
-  }
-};
+const serverConfig = require('../src/config/serverConfig');
 
 // Initialize the database
 const initializeDatabase = async () => {
-  if (!ensureDbDirectoryExists()) {
+  const { dbDirectory, dbPath, sqlScript } = serverConfig;
+
+  // Validate and create directory structure
+  try {
+    if (!fs.existsSync(dbDirectory)) {
+      fs.mkdirSync(dbDirectory, { recursive: true });
+      console.log(`Created database directory: ${dbDirectory}`);
+    }
+  } catch (err) {
+    console.error(`Failed to create database directory: ${err.message}`);
     process.exit(1);
   }
 
-  const dbPath = path.join(config.dbDirectory, config.dbFilename);
   let db;
-
   try {
     // Check if SQL file exists
-    if (!fs.existsSync(config.sqlScript)) {
-      throw new Error(`SQL initialization file not found at ${config.sqlScript}`);
+    if (!fs.existsSync(sqlScript)) {
+      throw new Error(`SQL initialization file not found at ${sqlScript}`);
     }
 
     // Read SQL file
-    const initSQL = fs.readFileSync(config.sqlScript, 'utf8');
+    const initSQL = fs.readFileSync(sqlScript, 'utf8');
     console.log('Successfully read SQL initialization file');
 
     // Initialize database
@@ -62,13 +49,13 @@ const initializeDatabase = async () => {
     });
 
     console.log('Database initialized successfully!');
-    
+
     // Verify tables were created
     await new Promise((resolve, reject) => {
       db.all("SELECT name FROM sqlite_master WHERE type='table'", (err, tables) => {
         if (err) reject(err);
         else {
-          console.log('Created tables:', tables.map(t => t.name).join(', '));
+          console.log('Created tables:', tables.map((t) => t.name).join(', '));
           resolve();
         }
       });
@@ -77,7 +64,7 @@ const initializeDatabase = async () => {
     return true;
   } catch (err) {
     console.error('Error initializing database:', err.message);
-    
+
     // Clean up if initialization failed
     try {
       if (fs.existsSync(dbPath)) {
@@ -87,7 +74,7 @@ const initializeDatabase = async () => {
     } catch (cleanupErr) {
       console.error('Failed to clean up database file:', cleanupErr.message);
     }
-    
+
     return false;
   } finally {
     if (db) {
@@ -100,4 +87,4 @@ const initializeDatabase = async () => {
 (async () => {
   const success = await initializeDatabase();
   process.exit(success ? 0 : 1);
-})(); 
+})();
