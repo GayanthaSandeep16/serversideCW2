@@ -9,7 +9,6 @@ async function getCountryData(countryName) {
 
     if (serverConfig.authToken === undefined) {
         try {
-           
             console.error('Authorization token is not set in server configuration');
             const response = await getCountryDataFromExternal(countryName);
             return response;
@@ -20,7 +19,6 @@ async function getCountryData(countryName) {
 
     }else {
         try {
-            console.log(serverConfig.authToken);
             console.error('Authorization token is set in server configuration');
             const response = await getCountryDataFromFirstCw(countryName);
             return response;
