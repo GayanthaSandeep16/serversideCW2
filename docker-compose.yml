@@ -28,17 +28,24 @@ services:
       - PORT=3030
       - JWT_SECRET=gayantha-server
       - COUNTRY_API_URL=https://restcountries.com/v3.1
-      - AUTH_TOKEN=327dab9a02bc3b00e0027d169705ee8f
+      - AUTH_TOKEN=c364f0bc8e4318114bb56be8089d0265
       - DB_DIRECTORY=/app/data
       - DB_FILENAME=traveltales.db
       - SQL_SCRIPT=/app/src/sql/init-db.sql
+      - INTERNAL_SERVICE_URL=http://host.docker.internal:3000
     volumes:
       - ./backend/src:/app/src
-      - ./backend/data:/app/data
+      - traveltales_data:/app/data:rw
       # Don't override node_modules from the container
       - /app/node_modules
+    command: >
+      sh -c "node src/script/database.js && node src/server.js"
     networks:
       - app-network
+
+volumes:
+  traveltales_data:
+    name: traveltales_data
 
 networks:
   app-network:

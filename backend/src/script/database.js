@@ -29,37 +29,68 @@ const initializeDatabase = async () => {
     const initSQL = fs.readFileSync(sqlScript, 'utf8');
     console.log('Successfully read SQL initialization file');
 
-    // Initialize database
-    db = new sqlite3.Database(dbPath);
+    // Check if database exists and has tables
+    const dbExists = fs.existsSync(dbPath);
+    let needsInitialization = !dbExists;
 
-    // Enable foreign key constraints
-    await new Promise((resolve, reject) => {
-      db.run('PRAGMA foreign_keys = ON;', (err) => {
-        if (err) reject(err);
-        else resolve();
+    if (dbExists) {
+      // Check if database has tables
+      db = new sqlite3.Database(dbPath);
+      const tables = await new Promise((resolve, reject) => {
+        db.all("SELECT name FROM sqlite_master WHERE type='table'", (err, tables) => {
+          if (err) reject(err);
+          else resolve(tables);
+        });
       });
-    });
+      
+      if (tables.length === 0) {
+        console.log('Database exists but has no tables. Initializing...');
+        needsInitialization = true;
+      } else {
+        console.log('Database exists with tables:', tables.map(t => t.name).join(', '));
+      }
+    }
 
-    // Execute SQL commands
-    await new Promise((resolve, reject) => {
-      db.exec(initSQL, (err) => {
-        if (err) reject(err);
-        else resolve();
+    if (needsInitialization) {
+      if (dbExists) {
+        console.log('Removing existing database file...');
+        fs.unlinkSync(dbPath);
+      }
+
+      // Initialize database
+      db = new sqlite3.Database(dbPath);
+
+      // Enable foreign key constraints
+      await new Promise((resolve, reject) => {
+        db.run('PRAGMA foreign_keys = ON;', (err) => {
+          if (err) reject(err);
+          else resolve();
+        });
       });
-    });
 
-    console.log('Database initialized successfully!');
-
-    // Verify tables were created
-    await new Promise((resolve, reject) => {
-      db.all("SELECT name FROM sqlite_master WHERE type='table'", (err, tables) => {
-        if (err) reject(err);
-        else {
-          console.log('Created tables:', tables.map((t) => t.name).join(', '));
-          resolve();
-        }
+      // Execute SQL commands
+      await new Promise((resolve, reject) => {
+        db.exec(initSQL, (err) => {
+          if (err) reject(err);
+          else resolve();
+        });
       });
-    });
+
+      console.log('Database initialized successfully!');
+
+      // Verify tables were created
+      await new Promise((resolve, reject) => {
+        db.all("SELECT name FROM sqlite_master WHERE type='table'", (err, tables) => {
+          if (err) reject(err);
+          else {
+            console.log('Created tables:', tables.map((t) => t.name).join(', '));
+            resolve();
+          }
+        });
+      });
+    } else {
+      console.log('Database already initialized, skipping initialization.');
+    }
 
     return true;
   } catch (err) {
@@ -86,5 +117,9 @@ const initializeDatabase = async () => {
 // Run initialization
 (async () => {
   const success = await initializeDatabase();
-  process.exit(success ? 0 : 1);
+  if (!success) {
+    console.error('Database initialization failed');
+    process.exit(1);
+  }
+  console.log('Database initialization completed successfully');
 })();

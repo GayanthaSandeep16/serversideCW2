@@ -5,7 +5,14 @@ const serverConfig = require('../config/serverConfig');
 
 async function fetchAllCountriesNames() {
     try {
-        const response = await axios.get(`${serverConfig.countryApiUrl}/all`);
+        const response = await axios.get(`${serverConfig.countryApiUrl}/all?fields=name`, {
+            timeout: 5000,
+            httpsAgent: new https.Agent({
+                rejectUnauthorized: true,
+                minVersion: 'TLSv1.2',
+                keepAlive: true,
+            }),
+        });
         return response.data.map(country => country.name.common);
     } catch (error) {
         console.error('Error fetching all country names:', error.message);

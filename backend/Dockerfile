@@ -26,10 +26,11 @@ RUN mkdir -p /app/data && \
 ENV PORT=3030
 ENV JWT_SECRET=gayantha-server
 ENV COUNTRY_API_URL=https://restcountries.com/v3.1
-ENV AUTH_TOKEN=327dab9a02bc3b00e0027d169705ee8f
+ENV AUTH_TOKEN=c364f0bc8e4318114bb56be8089d0265 
 ENV DB_DIRECTORY=/app/data
 ENV DB_FILENAME=traveltales.db
 ENV SQL_SCRIPT=/app/src/sql/init-db.sql
+ENV INTERNAL_SERVICE_URL=http://host.docker.internal:3000
 
 # Expose port
 EXPOSE 3030

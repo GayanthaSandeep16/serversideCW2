@@ -1,4 +1,4 @@
-const app = require('./App');
+const app = require('./app');
 const serverConfig = require('./config/serverConfig');
 
 const PORT = serverConfig.port ;
