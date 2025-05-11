@@ -1,7 +1,7 @@
 // backend/script/database.js
 const fs = require('fs');
 const sqlite3 = require('sqlite3').verbose();
-const serverConfig = require('../src/config/serverConfig');
+const serverConfig = require('../config/serverConfig');
 
 // Initialize the database
 const initializeDatabase = async () => {

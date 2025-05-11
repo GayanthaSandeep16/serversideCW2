@@ -1,4 +1,4 @@
-const { fetchAllCountriesNames } = require('../utils/apiUtils.js');
+const { fetchAllCountriesNames, getCountryDataFromExternal, getCountryDataFromFirstCw } = require('../utils/apiUtils.js');
 const serverConfig = require('../config/serverConfig');
 
 const axios = require('axios');
@@ -6,17 +6,30 @@ const axios = require('axios');
 
 
 async function getCountryData(countryName) {
-    try {
-        const response = await axios.get(`http://localhost:3000/api/country/${countryName}`, {
-            headers: {
-                'Authorization': serverConfig.authToken,
-            }
-        });
-        return response.data;
-    } catch (error) {
-        console.error('Error fetching country data:', error);
-        throw new Error('Failed to fetch country data');
-    }
+
+    if (serverConfig.authToken === undefined) {
+        try {
+           
+            console.error('Authorization token is not set in server configuration');
+            const response = await getCountryDataFromExternal(countryName);
+            return response;
+        } catch (error) {
+            console.error('Error fetching country data from external API:', error.message);
+            throw new Error('Failed to fetch country data');
+        }
+
+    }else {
+        try {
+            console.log(serverConfig.authToken);
+            console.error('Authorization token is set in server configuration');
+            const response = await getCountryDataFromFirstCw(countryName);
+            return response;
+        } catch (error) {
+            console.error('Error fetching country data from server:', error.message);
+            throw new Error('Failed to fetch country data');
+        }
+    }   
+   
 }
 
 async function getAllCountriesNames() {
