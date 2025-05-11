@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Modal, Button, Form } from 'react-bootstrap';
+import { Modal, Button, Form, Alert } from 'react-bootstrap';
 import { useAuth } from '../context/AuthContext';
 
 interface RegisterModalProps {
@@ -13,6 +13,7 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ show, onHide }) => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const { register } = useAuth();
 
@@ -20,6 +21,7 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ show, onHide }) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setSuccess(false);
 
     if (password !== confirmPassword) {
       setError('Passwords do not match');
@@ -29,11 +31,16 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ show, onHide }) => {
 
     try {
       await register(username, email, password);
+      setSuccess(true);
       setUsername('');
       setEmail('');
       setPassword('');
       setConfirmPassword('');
-      onHide();
+      // Auto close after 2 seconds
+      setTimeout(() => {
+        onHide();
+        setSuccess(false);
+      }, 2000);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Registration failed');
     } finally {
@@ -47,6 +54,7 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ show, onHide }) => {
     setPassword('');
     setConfirmPassword('');
     setError('');
+    setSuccess(false);
     onHide();
   };
 
@@ -56,52 +64,58 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ show, onHide }) => {
         <Modal.Title>Register</Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        <Form onSubmit={handleSubmit}>
-          <Form.Group className="mb-3">
-            <Form.Label>Username</Form.Label>
-            <Form.Control
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
-              disabled={loading}
-            />
-          </Form.Group>
-          <Form.Group className="mb-3">
-            <Form.Label>Email</Form.Label>
-            <Form.Control
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              disabled={loading}
-            />
-          </Form.Group>
-          <Form.Group className="mb-3">
-            <Form.Label>Password</Form.Label>
-            <Form.Control
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              disabled={loading}
-            />
-          </Form.Group>
-          <Form.Group className="mb-3">
-            <Form.Label>Confirm Password</Form.Label>
-            <Form.Control
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-              disabled={loading}
-            />
-          </Form.Group>
-          {error && <div className="text-danger mb-3">{error}</div>}
-          <Button variant="primary" type="submit" disabled={loading}>
-            {loading ? 'Registering...' : 'Register'}
-          </Button>
-        </Form>
+        {success ? (
+          <Alert variant="success">
+            Registration successful! You are now logged in.
+          </Alert>
+        ) : (
+          <Form onSubmit={handleSubmit}>
+            <Form.Group className="mb-3">
+              <Form.Label>Username</Form.Label>
+              <Form.Control
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+                disabled={loading}
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Email</Form.Label>
+              <Form.Control
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                disabled={loading}
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Password</Form.Label>
+              <Form.Control
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                disabled={loading}
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Confirm Password</Form.Label>
+              <Form.Control
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                disabled={loading}
+              />
+            </Form.Group>
+            {error && <div className="text-danger mb-3">{error}</div>}
+            <Button variant="primary" type="submit" disabled={loading}>
+              {loading ? 'Registering...' : 'Register'}
+            </Button>
+          </Form>
+        )}
       </Modal.Body>
     </Modal>
   );

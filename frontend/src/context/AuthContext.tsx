@@ -31,7 +31,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchUser = async () => {
     try {
+      console.log('Fetching user profile...');
       const response = await api.get('/users/profile');
+      console.log('User profile response:', response.data);
       setUser(response.data);
       setIsAuthenticated(true);
     } catch (error) {
@@ -42,10 +44,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await api.post('/Users/login', {
+      console.log('Attempting login...');
+      const response = await api.post('/users/login', {
         email,
         password,
       });
+      console.log('Login response:', response.data);
       const { token, user } = response.data;
       localStorage.setItem('token', token);
       setToken(token);
@@ -59,12 +63,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const register = async (username: string, email: string, password: string) => {
     try {
-      const response = await api.post('/users/register', {
+      console.log('Attempting registration...');
+      // First register the user
+      const registerResponse = await api.post('/users/register', {
         username,
         email,
         password,
       });
-      const { token, user } = response.data;
+      console.log('Registration response:', registerResponse.data);
+
+      // Then login to get the token
+      const loginResponse = await api.post('/users/login', {
+        email,
+        password,
+      });
+      
+
+      const { token, user } = loginResponse.data;
       localStorage.setItem('token', token);
       setToken(token);
       setUser(user);
@@ -76,6 +91,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = () => {
+    console.log('Logging out...');
     localStorage.removeItem('token');
     setToken(null);
     setUser(null);
@@ -87,6 +103,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const checkAuth = async () => {
       const storedToken = localStorage.getItem('token');
       if (storedToken) {
+        console.log('Found stored token, checking auth...');
         setToken(storedToken);
         await fetchUser();
       }

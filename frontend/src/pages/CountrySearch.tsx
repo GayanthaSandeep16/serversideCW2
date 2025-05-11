@@ -46,6 +46,7 @@ const CountrySearch: React.FC = () => {
   const [countrySearchInput, setCountrySearchInput] = useState('');
   const [showCountryDetailsSuggestions, setShowCountryDetailsSuggestions] = useState(false);
   const [filteredCountryDetails, setFilteredCountryDetails] = useState<string[]>([]);
+  const [countriesError, setCountriesError] = useState(false);
 
   // Fetch all country names on mount
   useEffect(() => {
@@ -56,15 +57,17 @@ const CountrySearch: React.FC = () => {
           ? response.data
           : response.data.map((c: any) => c.name);
         setCountries(countryNames.sort());
+        setCountriesError(false);
       } catch (error) {
         console.error('Error fetching countries:', error);
+        setCountriesError(true);
       }
     };
 
     fetchCountries();
   }, []);
 
-  // Filter countries based on input
+  // Filter countries based on input for post search
   useEffect(() => {
     if (countryFilter.trim()) {
       const filtered = countries.filter(country =>
@@ -203,6 +206,11 @@ const CountrySearch: React.FC = () => {
       <h2 className="mb-4">Search</h2>
       <Tabs defaultActiveKey="posts" className="mb-4">
         <Tab eventKey="posts" title="Search Posts">
+          {countriesError && (
+            <div className="alert alert-danger">
+              Unable to load country list. Please try again later.
+            </div>
+          )}
           <Form className="mb-4">
             <Row>
               <Col md={6} className="mb-3">
@@ -218,6 +226,7 @@ const CountrySearch: React.FC = () => {
                         setShowCountrySuggestions(true);
                       }}
                       onFocus={() => setShowCountrySuggestions(true)}
+                      onBlur={() => setTimeout(() => setShowCountrySuggestions(false), 200)}
                     />
                     {showCountrySuggestions && filteredCountries.length > 0 && (
                       <div 
@@ -254,17 +263,15 @@ const CountrySearch: React.FC = () => {
             </Row>
           </Form>
 
-          {loading && (
+          {loading ? (
             <div className="text-center">
               <Spinner animation="border" role="status">
                 <span className="visually-hidden">Loading...</span>
               </Spinner>
             </div>
-          )}
-
-          {error && <div className="text-danger mb-4">{error}</div>}
-
-          {posts.length > 0 && (
+          ) : error ? (
+            <div className="text-danger mb-4">{error}</div>
+          ) : posts.length > 0 ? (
             <>
               <h3 className="mb-4">
                 Posts
@@ -300,10 +307,19 @@ const CountrySearch: React.FC = () => {
                 </Button>
               </div>
             </>
+          ) : (countryFilter || usernameFilter) ? (
+            <div className="text-muted mb-4">No posts found matching your criteria.</div>
+          ) : (
+            <div className="text-muted mb-4">Please enter a country or username to search for posts.</div>
           )}
         </Tab>
 
         <Tab eventKey="countryDetails" title="Country Details">
+          {countriesError && (
+            <div className="alert alert-danger">
+              Unable to load country list. Please try again later.
+            </div>
+          )}
           <Form className="mb-4">
             <Form.Group>
               <Form.Label>Search Country</Form.Label>
@@ -317,6 +333,7 @@ const CountrySearch: React.FC = () => {
                     setShowCountryDetailsSuggestions(true);
                   }}
                   onFocus={() => setShowCountryDetailsSuggestions(true)}
+                  onBlur={() => setTimeout(() => setShowCountryDetailsSuggestions(false), 200)}
                 />
                 {showCountryDetailsSuggestions && filteredCountryDetails.length > 0 && (
                   <div 

@@ -4,6 +4,7 @@ import api from '../utils/axios';
 import { Link } from 'react-router-dom';
 
 interface Post {
+  flag: string | undefined;
   id: number;
   title: string;
   content: string;
@@ -74,30 +75,45 @@ const Home: React.FC = () => {
     );
   }
 
-  const PostCard: React.FC<{ post: Post }> = ({ post }) => (
-    <Card className="mb-4">
-      <Card.Body>
-        <Card.Title>{post.title}</Card.Title>
-        <Card.Subtitle className="mb-2 text-muted">
-          By {post.username} • {new Date(post.created_at).toLocaleDateString()}
-        </Card.Subtitle>
-        <Card.Text>{post.content.substring(0, 150)}...</Card.Text>
-        <div className="d-flex justify-content-between align-items-center">
-          <Link to={`/post/${post.id}`} className="btn btn-primary">
-            Read More
-          </Link>
-          <div className="text-muted">
-            <span className="me-3">
-              <i className="bi bi-hand-thumbs-up-fill"></i> {post.like_count ?? 0}
-            </span>
-            <span>
-              <i className="bi bi-hand-thumbs-down-fill"></i> {post.dislike_count ?? 0}
-            </span>
-          </div>
+const PostCard: React.FC<{ post: Post }> = ({ post }) => (
+  <Card className="mb-4 h-100 shadow-sm">
+    <Card.Body>
+      <div className="text-center">
+        <Card.Img
+          variant="top"
+          src={post.flag}
+          alt={`${post.country} flag`}
+          className="w-100"
+          style={{
+            aspectRatio: '3/2',
+            objectFit: 'contain',
+            padding: '10px',
+            backgroundColor: '#f8f9fa',
+            maxHeight: '150px',
+          }}
+        />
+      </div>
+      <Card.Title className="h5 text-center mt-2">{post.title}</Card.Title>
+      <Card.Subtitle className="mb-2 text-muted text-center">
+        By {post.username} • {new Date(post.created_at).toLocaleDateString()}
+      </Card.Subtitle>
+      <Card.Text>{post.content.substring(0, 150)}...</Card.Text>
+      <div className="d-flex justify-content-between align-items-center mt-3">
+        <Link to={`/post/${post.id}`} className="btn btn-primary">
+          Read More
+        </Link>
+        <div className="text-muted">
+          <span className="me-3">
+            <i className="bi bi-hand-thumbs-up-fill"></i> {post.like_count ?? 0}
+          </span>
+          <span>
+            <i className="bi bi-hand-thumbs-down-fill"></i> {post.dislike_count ?? 0}
+          </span>
         </div>
-      </Card.Body>
-    </Card>
-  );
+      </div>
+    </Card.Body>
+  </Card>
+);
 
   return (
     <div className="container">

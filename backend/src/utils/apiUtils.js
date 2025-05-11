@@ -23,7 +23,7 @@ async function getCountryDataFromExternal(countryName) {
                 keepAlive: true,
             }),
         });
-        console.log('API response received');
+        
         if (!response.data || response.data.length === 0) {
             throw new Error('Country not found');
         }
