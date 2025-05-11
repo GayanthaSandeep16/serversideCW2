@@ -1,9 +1,9 @@
 const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
 const { getCountryData } = require('../services/countryService');
 const { HTTP_STATUS, ERROR_MESSAGES } = require('../utils/constants');
+const serverConfig = require('../config/serverConfig');
 
-const db = new sqlite3.Database(path.join(__dirname, '..', 'data', 'traveltales.db'));
+const db = new sqlite3.Database(serverConfig.dbPath);
 
 async function createBlogPost(userId, title, content, country, dateOfVisit) {
   const countryData = await getCountryData(country);

@@ -1,6 +1,6 @@
 const { fetchAllCountriesNames } = require('../utils/apiUtils.js');
+const serverConfig = require('../config/serverConfig');
 
-require('dotenv').config();
 const axios = require('axios');
 
 
@@ -9,7 +9,7 @@ async function getCountryData(countryName) {
     try {
         const response = await axios.get(`http://localhost:3000/api/country/${countryName}`, {
             headers: {
-                'Authorization': process.env.AUTH_TOKEN
+                'Authorization': serverConfig.authToken,
             }
         });
         return response.data;
