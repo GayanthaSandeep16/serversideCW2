@@ -1,6 +1,7 @@
 const { registerUser, loginUser, followUser, unfollowUser,getUserProfile,getFollowersbyId,getFollowingByUserId,updateUserProfile,getAllUsersExceptCurrent } = require('../services/userService.js');
 const { HTTP_STATUS } = require('../utils/constants.js');
 
+
 async function register(req, res, next) {
   try {
     const { email, password, username } = req.body;

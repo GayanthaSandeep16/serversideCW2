@@ -2,6 +2,8 @@ const jwt = require('jsonwebtoken');
 const { HTTP_STATUS, ERROR_MESSAGES } = require('../utils/constants');
 const serverConfig = require('../config/serverConfig');
 
+
+// Middleware to authenticate JWT tokens
 function authenticateToken(req, res, next) {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];

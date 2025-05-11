@@ -1,7 +1,7 @@
 const {  getAllCountriesNames,getCountryData } = require('../services/countryService');
 const { HTTP_STATUS } = require('../utils/constants.js');
 
-
+//get country data from restcountries API or First CW API based on server configuration
 async function getCountry(req, res, next) {
   try {
     const country = req.params.country || req.query.country || req.body.country;
@@ -15,6 +15,7 @@ async function getCountry(req, res, next) {
   }
 }
 
+//get all country names from restcountries API
 async function getAllCountries(req, res, next) {
   try {
     const countries = await getAllCountriesNames();

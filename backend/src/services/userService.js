@@ -8,7 +8,10 @@ const serverConfig = require('../config/serverConfig');
 
 const db = new sqlite3.Database(serverConfig.dbPath);
 
-
+/**
+ * registetr a new user
+ * 
+ */
 async function registerUser(email, password, username) {
   const hashedPassword = await bcrypt.hash(password, 10);
   return new Promise((resolve, reject) => {
@@ -25,6 +28,11 @@ async function registerUser(email, password, username) {
     );
   });
 }
+
+/**
+ * 
+ * when user loging 
+ */
 
 async function loginUser(email, password) {
   return new Promise((resolve, reject) => {
@@ -44,6 +52,11 @@ async function loginUser(email, password) {
   });
 }
 
+/**
+ * followeuser 
+ * 
+ */
+
 async function followUser(followerId, followeeId) {
   return new Promise((resolve, reject) => {
     db.run(
@@ -60,6 +73,11 @@ async function followUser(followerId, followeeId) {
   });
 }
 
+
+/**
+ * 
+ * unfollow user handle
+ */
 async function unfollowUser(followerId, followeeId) {
   return new Promise((resolve, reject) => {
     // First check if the relationship exists
@@ -93,6 +111,11 @@ async function unfollowUser(followerId, followeeId) {
   });
 }
 
+/**
+ * 
+ * get user profie this method using mainly for get user profile page
+ */
+
 async function getUserProfile(userId) {
   return new Promise((resolve, reject) => {
     db.get('SELECT id, email, username FROM users WHERE id = ?', [userId], (err, row) => {
@@ -102,6 +125,10 @@ async function getUserProfile(userId) {
   });
 }
 
+/**
+ * 
+ * use for update user profile in user profile page
+ */
 async function updateUserProfile(userId, { email, username }) {
   return new Promise((resolve, reject) => {
     db.run('UPDATE users SET email = ?, username = ? WHERE id = ?', [email, username, userId], function(err) {
@@ -111,15 +138,11 @@ async function updateUserProfile(userId, { email, username }) {
   });
 }
 
-async function isTokenBlacklisted(token) {
-  return new Promise((resolve, reject) => {
-    db.get('SELECT token FROM blacklisted_tokens WHERE token = ?', [token], (err, row) => {
-      if (err) reject(err);
-      resolve(!!row);
-    });
-  });
-}
-
+/**
+ * 
+ * retrive all followers by user id
+ * this use in when showing user profile page followers list
+ */
 async function getFollowersbyId(userId) {
   return new Promise((resolve, reject) => {
     db.all('SELECT u.id, u.username FROM users u JOIN followers f ON u.id = f.follower_id WHERE f.followee_id = ?', [userId], (err, rows) => {
@@ -128,6 +151,12 @@ async function getFollowersbyId(userId) {
     });
   });
 }
+
+/**
+ * 
+ * retrive all following by user id
+ * this use in when showing user profile page following list
+ */
 
 async function getFollowingByUserId(userId) {
   return new Promise((resolve, reject) => {
@@ -138,6 +167,11 @@ async function getFollowingByUserId(userId) {
   });
 }
 
+/**
+ * This function retrieves all users except the current user.
+ * this used in discovers users page
+ * 
+ */
 async function getAllUsersExceptCurrent(currentUserId) {
   return new Promise((resolve, reject) => {
     db.all(

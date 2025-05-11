@@ -5,6 +5,11 @@ const serverConfig = require('../config/serverConfig');
 
 const db = new sqlite3.Database(serverConfig.dbPath);
 
+/**
+ * 
+ * Creates a new blog post in the database.
+ 
+ */
 async function createBlogPost(userId, title, content, country, dateOfVisit) {
   const countryData = await getCountryData(country);
   return new Promise((resolve, reject) => {
@@ -22,6 +27,9 @@ async function createBlogPost(userId, title, content, country, dateOfVisit) {
   });
 }
 
+/**
+ *  Edits an existing blog post in the database.
+ */
 async function editBlogPost(postId, userId, title, content, country, dateOfVisit) {
   const countryData = await getCountryData(country);
   return new Promise((resolve, reject) => {
@@ -43,6 +51,13 @@ async function editBlogPost(postId, userId, title, content, country, dateOfVisit
   });
 }
 
+/**
+ * deletes a blog post from the database.
+ * @param {*} postId 
+ * @param {*} userId 
+ * @returns 
+ */
+
 async function deleteBlogPost(postId, userId) {
   return new Promise((resolve, reject) => {
     db.run(
@@ -63,7 +78,16 @@ async function deleteBlogPost(postId, userId) {
   });
 }
 
-async function getBlogPosts({ country, username, page = 1, limit = 10, sortBy = 'newest' }) {
+/**
+ * this function retrieves blog posts from the database based on various filters and sorting options.
+ * this is using in home page and search page.
+ * @param {string} country - The country to filter posts by.  
+ * @param {string} username - The username to filter posts by.
+ * @param {string} sortBy - The sorting option ('newest', 'mostLiked', 'mostCommented').
+ * * @param {*} param0 
+ * @returns 
+ */
+async function getBlogPosts({ country, username, page = 1, limit = 9, sortBy = 'newest' }) {
   const offset = (page - 1) * limit;
   let query = `
     SELECT p.*, u.username,
@@ -107,7 +131,10 @@ async function getBlogPosts({ country, username, page = 1, limit = 10, sortBy = 
     });
   });
 }
-
+/**
+ * 
+ * Likes or unlikes a blog post in the database.
+ */
 async function likePost(userId, postId, isLike) {
   return new Promise((resolve, reject) => {
     db.run(
@@ -124,6 +151,11 @@ async function likePost(userId, postId, isLike) {
   });
 }
 
+
+/**
+ * 
+ * Creates a new comment on a blog post in the database.
+ */
 async function createComment(userId, postId, content) {
   return new Promise((resolve, reject) => {
     db.run(
@@ -140,6 +172,10 @@ async function createComment(userId, postId, content) {
   });
 }
 
+/**
+ * 
+ * load comments for a specific blog post from the database.
+ */
 async function getComments(postId, page = 1, limit = 10) {
   const offset = (page - 1) * limit;
   return new Promise((resolve, reject) => {
@@ -157,6 +193,10 @@ async function getComments(postId, page = 1, limit = 10) {
   });
 }
 
+/**
+ * 
+ * Removes a like or dislike from a blog post in the database.
+ */
 async function removeLikeInPost(userId, postId) {
   return new Promise((resolve, reject) => {
     db.run('DELETE FROM likes WHERE user_id = ? AND post_id = ?', [userId, postId], function(err) {
@@ -166,6 +206,12 @@ async function removeLikeInPost(userId, postId) {
   });
 }
 
+
+/**
+ * get all posts from users that the user is following.
+ * this is unging in feed page.
+ * 
+ */
 async function getFollowedPosts(userId, page = 1, limit = 10) {
   const offset = (page - 1) * limit;
   return new Promise((resolve, reject) => {
@@ -193,6 +239,10 @@ async function getFollowedPosts(userId, page = 1, limit = 10) {
   });
 }
 
+/**
+ * 
+ * deltes a comment from a blog post in the database.
+ */
 async function deleteCommentInPost(commentId, userId) {
   return new Promise((resolve, reject) => {
     db.run('DELETE FROM comments WHERE id = ? AND user_id = ?', [commentId, userId], function(err) {
@@ -203,6 +253,11 @@ async function deleteCommentInPost(commentId, userId) {
   });
 }
 
+/**
+ * 
+ *gets all likes and dislikes for a specific blog post from the database.
+ this is used in blog post page.
+ */
 async function getPostLikes(postId) {
   return new Promise((resolve, reject) => {
     db.all('SELECT user_id, is_like FROM likes WHERE post_id = ?', [postId], (err, rows) => {
@@ -212,6 +267,11 @@ async function getPostLikes(postId) {
   });
 }
 
+/**
+ * 
+ * Retrieves a specific blog post by its ID from the database.
+ * this is used in blog post page.
+ */
 async function getBlogPostById(postId) {
   return new Promise((resolve, reject) => {
     db.get(

@@ -3,6 +3,7 @@ const router = express.Router();
 const { register, login, follow, unfollow, getProfile, updateProfile, getFollowers, getFollowing, getAllUsers } = require('../controllers/userController');
 const { authenticateToken } = require('../middleware/authMiddleware');
 
+// User routes
 router.get('/', authenticateToken, getAllUsers);
 router.post('/register', register);
 router.post('/login', login);

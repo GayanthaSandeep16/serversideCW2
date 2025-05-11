@@ -1,6 +1,7 @@
 const { createBlogPost, editBlogPost, deleteBlogPost, getBlogPosts, likePost, createComment, getComments, removeLikeInPost, getFollowedPosts, deleteCommentInPost, getPostLikes,getBlogPostById } = require('../services/blogService');
 const { HTTP_STATUS } = require('../utils/constants');
 
+//create a new blog post
 async function createPost(req, res, next) {
   try {
     const { title, content, country, dateOfVisit } = req.body;
@@ -12,6 +13,7 @@ async function createPost(req, res, next) {
   }
 }
 
+//edit a blog post
 async function editPost(req, res, next) {
   try {
     const { postId, title, content, country, dateOfVisit } = req.body;
@@ -23,7 +25,7 @@ async function editPost(req, res, next) {
     res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ error: error.message });
   }
 }
-
+//delete a blog post
 async function deletePost(req, res, next) {
   try {
     const { postId } = req.body;
@@ -35,6 +37,11 @@ async function deletePost(req, res, next) {
   }
 }
 
+/**
+ * Search for blog posts based on country and username or 
+ * use in search
+ *  */
+
 async function searchPosts(req, res, next) {
   try {
     const { country, username, page, limit } = req.query;
@@ -45,6 +52,7 @@ async function searchPosts(req, res, next) {
   }
 }
 
+//like or unlike a blog post
 async function like(req, res, next) {
   try {
     const { postId, isLike } = req.body;
@@ -56,6 +64,7 @@ async function like(req, res, next) {
   }
 }
 
+//comment on a blog post
 async function comment(req, res, next) {
   try {
     const { postId, content } = req.body;
@@ -67,6 +76,7 @@ async function comment(req, res, next) {
   }
 }
 
+//get comments for a blog post
 async function getPostComments(req, res, next) {
   try {
     const postId = parseInt(req.params.postId);
@@ -82,6 +92,7 @@ async function getPostComments(req, res, next) {
   }
 }
 
+//remove like from a blog post basically delete the like  from db
 async function removeLike(req, res) {
   const { postId } = req.body;
   const userId = req.user.id;
@@ -89,12 +100,14 @@ async function removeLike(req, res) {
   res.status(200).json(result);
 }
 
+//get the feed for the use
 async function getFeed(req, res) {
   const { page, limit } = req.query;
   const posts = await getFollowedPosts(req.user.id, parseInt(page), parseInt(limit));
   res.status(200).json(posts);
 }
 
+//delete a comment from a blog post
 async function deleteComment(req, res) {
   const { commentId } = req.body;
   const userId = req.user.id;
@@ -102,11 +115,15 @@ async function deleteComment(req, res) {
   res.status(200).json(result);
 }
 
+//get like for a blog post
 async function getLikes(req, res) {
   const { postId } = req.params;
   const likes = await getPostLikes(postId);
   res.status(200).json(likes);
 }
+
+//this is the main function for searching posts
+//it is used in the search page and home page
 
 async function searchPosts(req, res) {
   const { country, username, page, limit, sortBy } = req.query;

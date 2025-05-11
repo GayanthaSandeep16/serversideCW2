@@ -3,8 +3,10 @@ const serverConfig = require('../config/serverConfig');
 
 const axios = require('axios');
 
-
-
+/**
+ * get country data from external API or First CW API based on server configuration
+ * 
+ */
 async function getCountryData(countryName) {
 
     if (serverConfig.authToken === undefined) {
@@ -30,6 +32,11 @@ async function getCountryData(countryName) {
    
 }
 
+
+/**
+ * 
+ * get all country names from restcountries API
+ */
 async function getAllCountriesNames() {
     try {
         const countries = await fetchAllCountriesNames();

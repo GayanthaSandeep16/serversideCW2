@@ -2,7 +2,7 @@ const axios = require('axios');
 const https = require('https');
 const serverConfig = require('../config/serverConfig');
 
-
+// Function to fetch all country names from the restcountries API
 async function fetchAllCountriesNames() {
     try {
         const response = await axios.get(`${serverConfig.countryApiUrl}/all?fields=name`, {
@@ -20,6 +20,7 @@ async function fetchAllCountriesNames() {
     }
 }
 
+// Function to fetch country data from the restcountris API
 async function getCountryDataFromExternal(countryName) {
     try {
         const response = await axios.get(`${serverConfig.countryApiUrl}/name/${countryName}`, {
@@ -48,6 +49,7 @@ async function getCountryDataFromExternal(countryName) {
     }
 }
 
+// Function to fetch country data from the First CW API
 async function getCountryDataFromFirstCw(countryName) {
     try {
         const response = await axios.get(`${serverConfig.internalServiceUrl}/api/country/${countryName}`, {

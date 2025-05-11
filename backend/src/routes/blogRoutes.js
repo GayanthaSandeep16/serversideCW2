@@ -3,6 +3,7 @@ const router = express.Router();
 const { createPost, editPost, deletePost, searchPosts, like, comment, getPostComments, removeLike, getFeed, deleteComment, getLikes, getPostById } = require('../controllers/blogController');
 const { authenticateToken } = require('../middleware/authMiddleware');
 
+// Blog routes
 router.post('/', authenticateToken, createPost);
 router.put('/', authenticateToken, editPost);
 router.delete('/', authenticateToken, deletePost);
