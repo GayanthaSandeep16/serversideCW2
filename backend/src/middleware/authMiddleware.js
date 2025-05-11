@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const { HTTP_STATUS, ERROR_MESSAGES } = require('../utils/constants');
+const serverConfig = require('../config/serverConfig');
 
 function authenticateToken(req, res, next) {
   const authHeader = req.headers['authorization'];
@@ -10,7 +11,7 @@ function authenticateToken(req, res, next) {
     return res.status(HTTP_STATUS.UNAUTHORIZED).json({ error: ERROR_MESSAGES.UNAUTHORIZED });
   }
 
-  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+  jwt.verify(token, serverConfig.jwtSecret, (err, user) => {
     if (err) {
       console.log(`Invalid token: ${err.message}`);
       return res.status(HTTP_STATUS.FORBIDDEN).json({ error: ERROR_MESSAGES.UNAUTHORIZED });
