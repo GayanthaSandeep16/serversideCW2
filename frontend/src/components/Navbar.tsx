@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import LoginModal from './LoginModal';
 import RegisterModal from './RegisterModal';
 
+//create a navigation bar component
 const NavigationBar: React.FC = () => {
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);

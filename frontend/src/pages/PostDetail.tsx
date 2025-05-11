@@ -28,6 +28,8 @@ interface Comment {
   created_at: string;
 }
 
+// This component displays the details of a specific blog post, including comments and like/dislike functionality
+// this alloow to user check the post and comment on it
 const PostDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();

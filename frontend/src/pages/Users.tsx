@@ -12,6 +12,7 @@ interface User {
   isFollowed: boolean;
 }
 
+//user component to display a list of users
 const Users: React.FC = () => {
   const { user: currentUser } = useAuth();
   const [users, setUsers] = useState<User[]>([]);

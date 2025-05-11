@@ -27,6 +27,7 @@ interface Comment {
   created_at: string;
 }
 
+//Feed component to display user's feed
 const Feed: React.FC = () => {
   const { user } = useAuth();
   const [posts, setPosts] = useState<Post[]>([]);
@@ -64,6 +65,7 @@ const Feed: React.FC = () => {
     }
   };
 
+  // Fetch likes for each post
   const fetchPostLikes = async (postId: number) => {
     try {
       const [likesResponse, userLikeResponse] = await Promise.all([
@@ -92,6 +94,7 @@ const Feed: React.FC = () => {
     }
   };
 
+  //fetch comments for each post
   const fetchComments = async (postId: number) => {
     try {
       const response = await api.get(`/blogs/${postId}/comments`);
@@ -124,6 +127,7 @@ const Feed: React.FC = () => {
     }
   };
 
+  // Handle dislike click
   const handleDislikeClick = async (postId: number) => {
     try {
       if (likedPosts[postId] === false) {

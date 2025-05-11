@@ -6,7 +6,7 @@ interface LoginModalProps {
   show: boolean;
   onHide: () => void;
 }
-
+// This component is a modal for user login
 const LoginModal: React.FC<LoginModalProps> = ({ show, onHide }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

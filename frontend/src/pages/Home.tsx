@@ -15,6 +15,8 @@ interface Post {
   created_at: string;
 }
 
+// This component fetches and displays blog posts with sorting and pagination
+// for one time its fetch 9 posts for that fit to display
 const Home: React.FC = () => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [page, setPage] = useState(1);

@@ -26,6 +26,7 @@ interface FollowUser {
   username: string;
 }
 
+// Profile component to display user profile, followers, following, and posts
 const Profile: React.FC = () => {
   const { user: currentUser } = useAuth();
   const [user, setUser] = useState<User | null>(null);

@@ -7,6 +7,7 @@ interface RegisterModalProps {
   onHide: () => void;
 }
 
+//register modal component
 const RegisterModal: React.FC<RegisterModalProps> = ({ show, onHide }) => {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');

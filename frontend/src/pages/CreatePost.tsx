@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Form, Button, Card } from 'react-bootstrap';
 import api from '../utils/axios';
 import { useAuth } from '../context/AuthContext';
-
+// This component allows users to create a new blog post
 const CreatePost: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
