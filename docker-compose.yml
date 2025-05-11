@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  frontend:
+    build: 
+      context: ./frontend
+    ports:
+      - "3001:3001"
+    environment:
+      - PORT=3001
+      - REACT_APP_API_URL=http://localhost:3030/api
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
+      # Don't override node_modules from the container
+      - /app/node_modules
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+  backend:
+    build: 
+      context: ./backend
+    ports:
+      - "3030:3030"
+    environment:
+      - PORT=3030
+      - JWT_SECRET=gayantha-server
+      - COUNTRY_API_URL=https://restcountries.com/v3.1
+      - AUTH_TOKEN=327dab9a02bc3b00e0027d169705ee8f
+      - DB_DIRECTORY=/app/data
+      - DB_FILENAME=traveltales.db
+      - SQL_SCRIPT=/app/src/sql/init-db.sql
+    volumes:
+      - ./backend/src:/app/src
+      - ./backend/data:/app/data
+      # Don't override node_modules from the container
+      - /app/node_modules
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
