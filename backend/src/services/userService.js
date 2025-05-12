@@ -195,4 +195,4 @@ async function getAllUsersExceptCurrent(currentUserId) {
 }
 
 
-module.exports = { registerUser, loginUser, followUser, unfollowUser, getUserProfile, updateUserProfile, isTokenBlacklisted, getFollowersbyId, getFollowingByUserId,getAllUsersExceptCurrent };
+module.exports = { registerUser, loginUser, followUser, unfollowUser, getUserProfile, updateUserProfile, getFollowersbyId, getFollowingByUserId,getAllUsersExceptCurrent };
